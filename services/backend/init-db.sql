@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS catdog_mario_dev;
+CREATE DATABASE IF NOT EXISTS catdog_mario_test;

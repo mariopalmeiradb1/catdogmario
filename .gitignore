@@ -1,0 +1,14 @@
+/**/node_modules
+.vscode
+dist
+coverage
+logs
+*.log
+*.env
+*.env.local
+*.env.development
+*.env.test
+*.env.production
+.makuco
+packages/*/dist/
+.github/*
