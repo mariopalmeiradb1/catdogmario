@@ -23,7 +23,7 @@ export const passwordRules: Rule[] = [
 export const cnpjRules: Rule[] = [
   { required: true, message: VALIDATION_MESSAGES.REQUIRED },
   {
-    pattern: /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/,
+    pattern: /^(\d{14}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2})$/,
     message: VALIDATION_MESSAGES.CNPJ_INVALID,
   },
 ];
@@ -31,7 +31,11 @@ export const cnpjRules: Rule[] = [
 export const phoneRules: Rule[] = [
   { required: true, message: VALIDATION_MESSAGES.REQUIRED },
   {
-    pattern: /^\(\d{2}\)\s?\d{4,5}-\d{4}$/,
+    pattern: /^(\d{10,11}|\(\d{2}\)\s?\d{4,5}-\d{4})$/,
     message: VALIDATION_MESSAGES.PHONE_INVALID,
   },
 ];
+
+export function stripMask(value: string): string {
+  return value.replace(/\D/g, '');
+}

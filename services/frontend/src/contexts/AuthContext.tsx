@@ -1,6 +1,7 @@
-import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { User } from '~/types/auth.types';
 import { authService, setAccessToken, setLogoutCallback } from '~/services/auth.service';
+import { AuthContext } from './auth-context';
 
 export interface AuthContextValue {
   user: User | null;
@@ -9,8 +10,6 @@ export interface AuthContextValue {
   login(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
 }
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
 
 interface AuthProviderProps {
   children: ReactNode;

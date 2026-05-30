@@ -1,11 +1,13 @@
 import { Form, Input, Button, message } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { emailRules } from '~/utils/validators';
 import { VALIDATION_MESSAGES } from '~/utils/messages';
 import { AxiosError } from 'axios';
 import type { ApiError } from '~/types/api.types';
+import { getRoleHome } from '~/routes/role-home';
 
 interface LoginFormValues {
   email: string;
@@ -13,8 +15,9 @@ interface LoginFormValues {
 }
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(values: LoginFormValues) {
     setLoading(true);
@@ -27,6 +30,11 @@ export function LoginForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (user) {
+    navigate(getRoleHome(user.role), { replace: true });
+    return null;
   }
 
   return (

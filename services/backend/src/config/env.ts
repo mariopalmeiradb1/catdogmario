@@ -33,7 +33,7 @@ function requireEnv(key: string): string {
 export const env: Env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT) || 3000,
-  DB_HOST: requireEnv('DB_HOST'),
+  DB_HOST: requireEnv('DB_HOST') || 'localhost',
   DB_PORT: Number(process.env.DB_PORT) || 3306,
   DB_USER: requireEnv('DB_USER'),
   DB_PASSWORD: process.env.DB_PASSWORD || '',

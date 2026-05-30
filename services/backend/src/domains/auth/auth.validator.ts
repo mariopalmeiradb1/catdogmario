@@ -40,10 +40,12 @@ export const registerOngSchema = z
       .max(150, 'O nome da ONG deve ter no máximo 150 caracteres.'),
     cnpj: z
       .string({ required_error: 'Informe o CNPJ.' })
-      .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'Informe um CNPJ válido (XX.XXX.XXX/XXXX-XX).'),
+      .transform((val) => val.replace(/\D/g, ''))
+      .pipe(z.string().length(14, 'CNPJ deve ter 14 dígitos.')),
     phone: z
       .string({ required_error: 'Informe um telefone válido.' })
-      .min(1, 'Informe um telefone válido.'),
+      .transform((val) => val.replace(/\D/g, ''))
+      .pipe(z.string().min(10, 'Telefone deve ter no mínimo 10 dígitos.').max(11, 'Telefone deve ter no máximo 11 dígitos.')),
     address: z
       .string({ required_error: 'Informe o endereço.' })
       .min(1, 'Informe o endereço.'),

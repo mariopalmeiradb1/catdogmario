@@ -2,7 +2,7 @@ import { Form, Input, Button, Divider, message } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '~/services/auth.service';
-import { nameRules, emailRules, passwordRules, cnpjRules, phoneRules } from '~/utils/validators';
+import { nameRules, emailRules, passwordRules, cnpjRules, phoneRules, stripMask } from '~/utils/validators';
 import { AUTH_MESSAGES, VALIDATION_MESSAGES } from '~/utils/messages';
 import { AxiosError } from 'axios';
 import type { ApiError } from '~/types/api.types';
@@ -26,7 +26,12 @@ export function RegisterOngForm() {
   async function handleSubmit(values: RegisterOngFormValues) {
     setLoading(true);
     try {
-      await authService.registerOng(values);
+      const payload = {
+        ...values,
+        cnpj: stripMask(values.cnpj),
+        phone: stripMask(values.phone),
+      };
+      await authService.registerOng(payload);
       message.success(AUTH_MESSAGES.REGISTER_ONG_SUCCESS);
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
