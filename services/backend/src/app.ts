@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { corsConfig } from './config/cors';
 import { authRoutes } from './domains/auth/auth.routes';
+import { catalogRoutes } from './domains/catalog/catalog.routes';
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 
 export function createApp() {
@@ -15,6 +16,7 @@ export function createApp() {
   app.use(cookieParser());
 
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/catalog', catalogRoutes);
 
   app.use(errorHandler);
 
