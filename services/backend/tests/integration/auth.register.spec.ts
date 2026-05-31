@@ -91,6 +91,8 @@ describe('Auth Register Integration', () => {
       cnpj: '12.345.678/0001-90',
       phone: '(11) 99999-9999',
       address: 'Rua dos Gatos, 123',
+      description: 'Uma ONG dedicada ao resgate e cuidado de animais abandonados nas ruas da cidade.',
+      capacity: 20,
     };
 
     it('should register ONG admin successfully', async () => {
@@ -106,7 +108,9 @@ describe('Auth Register Integration', () => {
 
       const ong = await db('ongs').where({ id: user.ong_id }).first();
       expect(ong.status).toBe('pending');
-      expect(ong.cnpj).toBe('12.345.678/0001-90');
+      expect(ong.cnpj).toBe('12345678000190');
+      expect(ong.description).toBe(validData.description);
+      expect(ong.capacity).toBe(20);
     });
 
     it('should return 409 if CNPJ already exists', async () => {
@@ -117,6 +121,106 @@ describe('Auth Register Integration', () => {
 
       expect(res.status).toBe(409);
       expect(res.body.error.code).toBe('CNPJ_ALREADY_EXISTS');
+    });
+
+    it('should return 422 when description is missing', async () => {
+      const { description: _, ...dataWithoutDescription } = validData;
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send(dataWithoutDescription);
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 422 when description has less than 50 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, description: 'Texto curto demais para ser aceito.' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.description).toBeDefined();
+    });
+
+    it('should return 422 when description has more than 500 characters', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, description: 'a'.repeat(501) });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.description).toBeDefined();
+    });
+
+    it('should return 422 when description is only whitespace', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, description: ' '.repeat(60) });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.description).toBeDefined();
+    });
+
+    it('should return 422 when capacity is zero', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, capacity: 0 });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.capacity).toBeDefined();
+    });
+
+    it('should return 422 when capacity is negative', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, capacity: -1 });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.capacity).toBeDefined();
+    });
+
+    it('should return 422 when capacity is a decimal', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, capacity: 3.5 });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.capacity).toBeDefined();
+    });
+
+    it('should return 422 when capacity is not a number', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, capacity: 'abc' });
+
+      expect(res.status).toBe(422);
+      expect(res.body.error.fields.capacity).toBeDefined();
+    });
+
+    it('should accept description with exactly 50 characters', async () => {
+      const desc50 = 'a'.repeat(50);
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, email: 'border@test.com', description: desc50 });
+
+      expect(res.status).toBe(201);
+
+      const db = getTestDb();
+      const user = await db('users').where({ email: 'border@test.com' }).first();
+      const ong = await db('ongs').where({ id: user.ong_id }).first();
+      expect(ong.description).toBe(desc50);
+    });
+
+    it('should accept capacity of exactly 1', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register/ong')
+        .send({ ...validData, email: 'cap1@test.com', capacity: 1 });
+
+      expect(res.status).toBe(201);
+
+      const db = getTestDb();
+      const user = await db('users').where({ email: 'cap1@test.com' }).first();
+      const ong = await db('ongs').where({ id: user.ong_id }).first();
+      expect(ong.capacity).toBe(1);
     });
   });
 });

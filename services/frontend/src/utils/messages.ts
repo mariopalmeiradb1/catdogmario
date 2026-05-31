@@ -22,4 +22,8 @@ export const VALIDATION_MESSAGES = {
   NAME_MAX: 'Nome deve ter no máximo 100 caracteres.',
   CNPJ_INVALID: 'CNPJ inválido.',
   PHONE_INVALID: 'Telefone inválido.',
+  DESCRIPTION_REQUIRED: 'Descrição é obrigatória (mínimo 50 caracteres).',
+  DESCRIPTION_MIN: 'Descrição deve ter no mínimo 50 caracteres.',
+  DESCRIPTION_MAX: 'Descrição deve ter no máximo 500 caracteres.',
+  CAPACITY_INVALID: 'Capacidade deve ser um número inteiro maior que zero.',
 };

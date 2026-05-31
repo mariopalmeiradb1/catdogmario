@@ -70,6 +70,8 @@ describe('AuthService', () => {
       cnpj: '12.345.678/0001-90',
       phone: '(11) 99999-9999',
       address: 'Rua dos Gatos, 123',
+      description: 'Uma ONG dedicada ao resgate e cuidado de animais abandonados nas ruas da cidade.',
+      capacity: 20,
     };
 
     it('should register ONG admin successfully', async () => {

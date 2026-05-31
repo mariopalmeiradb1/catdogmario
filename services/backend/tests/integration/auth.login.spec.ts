@@ -49,6 +49,8 @@ describe('Auth Login Integration', () => {
       cnpj: '12.345.678/0001-90',
       phone: '(11) 99999-9999',
       address: 'Rua Test',
+      description: 'Uma ONG de teste para validação dos fluxos de autenticação do sistema.',
+      capacity: 10,
       status,
     });
     return id;

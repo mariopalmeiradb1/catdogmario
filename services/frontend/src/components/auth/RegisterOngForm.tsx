@@ -1,8 +1,8 @@
-import { Form, Input, Button, Divider, message } from 'antd';
+import { Form, Input, InputNumber, Button, Divider, message } from 'antd';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '~/services/auth.service';
-import { nameRules, emailRules, passwordRules, cnpjRules, phoneRules, stripMask } from '~/utils/validators';
+import { nameRules, emailRules, passwordRules, cnpjRules, phoneRules, descriptionRules, capacityRules, stripMask } from '~/utils/validators';
 import { AUTH_MESSAGES, VALIDATION_MESSAGES } from '~/utils/messages';
 import { AxiosError } from 'axios';
 import type { ApiError } from '~/types/api.types';
@@ -16,6 +16,8 @@ interface RegisterOngFormValues {
   cnpj: string;
   phone: string;
   address: string;
+  description: string;
+  capacity: number;
 }
 
 export function RegisterOngForm() {
@@ -55,7 +57,7 @@ export function RegisterOngForm() {
         <Input placeholder="Nome do responsável" size="large" />
       </Form.Item>
       <Form.Item name="email" rules={emailRules}>
-        <Input placeholder="E-mail" size="large" />
+        <Input placeholder="E-mail institucional" size="large" />
       </Form.Item>
       <Form.Item name="password" rules={passwordRules}>
         <Input.Password placeholder="Senha" size="large" />
@@ -101,6 +103,23 @@ export function RegisterOngForm() {
         rules={[{ required: true, message: VALIDATION_MESSAGES.REQUIRED }]}
       >
         <Input placeholder="Endereço" size="large" />
+      </Form.Item>
+      <Form.Item name="description" rules={descriptionRules}>
+        <Input.TextArea
+          placeholder="Descrição da ONG"
+          rows={4}
+          maxLength={500}
+          showCount
+        />
+      </Form.Item>
+      <Form.Item name="capacity" rules={capacityRules}>
+        <InputNumber
+          placeholder="Capacidade de animais"
+          min={1}
+          precision={0}
+          style={{ width: '100%' }}
+          size="large"
+        />
       </Form.Item>
 
       <Form.Item>

@@ -27,6 +27,8 @@ export interface RegisterOngData {
   cnpj: string;
   phone: string;
   address: string;
+  description: string;
+  capacity: number;
 }
 
 export interface ResetPasswordData {

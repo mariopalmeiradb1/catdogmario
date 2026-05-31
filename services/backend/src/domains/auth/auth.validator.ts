@@ -49,6 +49,18 @@ export const registerOngSchema = z
     address: z
       .string({ required_error: 'Informe o endereço.' })
       .min(1, 'Informe o endereço.'),
+    description: z
+      .string({ required_error: 'Descrição é obrigatória (mínimo 50 caracteres).' })
+      .trim()
+      .min(50, 'Descrição deve ter no mínimo 50 caracteres.')
+      .max(500, 'Descrição deve ter no máximo 500 caracteres.'),
+    capacity: z
+      .number({
+        required_error: 'Capacidade deve ser um número inteiro maior que zero.',
+        invalid_type_error: 'Capacidade deve ser um número inteiro maior que zero.',
+      })
+      .int('Capacidade deve ser um número inteiro maior que zero.')
+      .min(1, 'Capacidade deve ser um número inteiro maior que zero.'),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: 'As senhas não coincidem.',

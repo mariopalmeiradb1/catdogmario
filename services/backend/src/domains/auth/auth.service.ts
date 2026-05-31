@@ -80,6 +80,8 @@ export class AuthService {
       cnpj: data.cnpj,
       phone: data.phone,
       address: data.address,
+      description: data.description,
+      capacity: data.capacity,
     });
 
     const passwordHash = await hashPassword(data.password);

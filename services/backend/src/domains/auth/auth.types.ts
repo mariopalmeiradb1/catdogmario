@@ -19,6 +19,8 @@ export interface Ong {
   cnpj: string;
   phone: string;
   address: string;
+  description: string;
+  capacity: number;
   status: 'pending' | 'approved' | 'rejected' | 'inactive';
   created_at: Date;
   updated_at: Date;
@@ -66,6 +68,8 @@ export interface CreateOngData {
   cnpj: string;
   phone: string;
   address: string;
+  description: string;
+  capacity: number;
 }
 
 export interface RegisterAdopterInput {
@@ -84,6 +88,8 @@ export interface RegisterOngInput {
   cnpj: string;
   phone: string;
   address: string;
+  description: string;
+  capacity: number;
 }
 
 export interface LoginInput {

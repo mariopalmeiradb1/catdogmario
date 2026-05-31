@@ -4,6 +4,7 @@ const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
+  maxWorkers: 1,
   moduleNameMapper: {
     '^~/(.*)$': '<rootDir>/src/$1',
   },
@@ -14,6 +15,12 @@ const config: Config = {
   ],
   coverageDirectory: 'coverage',
   coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
     'src/domains/auth/': {
       branches: 80,
       functions: 80,
