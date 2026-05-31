@@ -15,7 +15,9 @@ import { VerifyCodePage } from '~/pages/auth/VerifyCodePage';
 import { ResetPasswordPage } from '~/pages/auth/ResetPasswordPage';
 import { CatalogPage } from '~/pages/public/CatalogPage';
 import { DashboardPage } from '~/pages/ong/DashboardPage';
+import { OngProfilePage } from '~/pages/ong/OngProfilePage';
 import { OngListPage } from '~/pages/admin/OngListPage';
+import { OngEditPage } from '~/pages/admin/OngEditPage';
 
 export function AppRoutes() {
   return (
@@ -50,6 +52,7 @@ export function AppRoutes() {
         <Route element={<RoleRoute allowedRoles={['ong_volunteer', 'ong_admin']} />}>
           <Route element={<OngLayout />}>
             <Route path="/ong/dashboard" element={<DashboardPage />} />
+            <Route path="/ong/profile" element={<OngProfilePage />} />
           </Route>
         </Route>
       </Route>
@@ -59,6 +62,8 @@ export function AppRoutes() {
         <Route element={<RoleRoute allowedRoles={['system_admin']} />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/ongs" element={<OngListPage />} />
+            <Route path="/admin/ongs/:id" element={<Navigate to="edit" replace />} />
+            <Route path="/admin/ongs/:id/edit" element={<OngEditPage />} />
           </Route>
         </Route>
       </Route>

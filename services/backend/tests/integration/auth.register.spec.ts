@@ -124,7 +124,8 @@ describe('Auth Register Integration', () => {
     });
 
     it('should return 422 when description is missing', async () => {
-      const { description: _, ...dataWithoutDescription } = validData;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { description, ...dataWithoutDescription } = validData;
       const res = await request(app)
         .post('/api/v1/auth/register/ong')
         .send(dataWithoutDescription);

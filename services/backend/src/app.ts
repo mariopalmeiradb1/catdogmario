@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import { corsConfig } from './config/cors';
 import { authRoutes } from './domains/auth/auth.routes';
 import { catalogRoutes } from './domains/catalog/catalog.routes';
+import { ongManagementRoutes } from './domains/ong-management/ong-management.routes';
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 
 export function createApp() {
@@ -17,6 +18,7 @@ export function createApp() {
 
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/catalog', catalogRoutes);
+  app.use('/api/v1/ong-management', ongManagementRoutes);
 
   app.use(errorHandler);
 
