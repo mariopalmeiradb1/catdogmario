@@ -1,0 +1,43 @@
+@startuml erd_ongs_hu01
+!theme plain
+title ERD — Tabela ongs (após HU-01)
+
+entity "ongs" as ongs {
+  * id : string(36) <<PK>>
+  --
+  * name : varchar(150)
+  * cnpj : varchar(18) <<UK>>
+  * phone : varchar(20)
+  * address : varchar(500)
+  * description : text
+  * animal_capacity : integer
+  * status : enum(pending, approved, rejected, inactive)
+  city : varchar(100)
+  state : varchar(2)
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "users" as users {
+  * id : string(36) <<PK>>
+  --
+  * name : varchar(100)
+  * email : varchar(255) <<UK>>
+  * password_hash : varchar(255)
+  * role : enum(adopter, ong_volunteer, ong_admin, system_admin)
+  # ong_id : string(36) <<FK>>
+  email_confirmed_at : timestamp
+  * is_active : boolean
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+ongs ||--o{ users : "has"
+
+note right of ongs::description
+  Novos campos adicionados em HU-01:
+  - description (obrigatório, 50-500 chars)
+  - animal_capacity (obrigatório, inteiro >= 1)
+end note
+
+@enduml

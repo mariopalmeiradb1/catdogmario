@@ -1,0 +1,50 @@
+@startuml sequence_register_ong_hu01
+!theme plain
+title Sequência — Registro de ONG (HU-01)
+
+actor "Admin da ONG" as user
+participant "RegisterOngForm\n(Frontend)" as form
+participant "auth.service.ts\n(Frontend)" as svc
+participant "POST /api/v1/auth/register/ong\n(Backend)" as api
+participant "validate.middleware\n(Zod)" as val
+participant "AuthController" as ctrl
+participant "AuthService" as biz
+participant "AuthRepository" as repo
+database "PostgreSQL\n(ongs, users)" as db
+
+user -> form : Preenche formulário\n(+ description, animal_capacity)
+form -> form : Validação client-side\n(Ant Design rules)
+form -> svc : registerOng(payload)
+svc -> api : POST /auth/register/ong\n{...dados, description, animal_capacity}
+
+api -> val : registerOngSchema.parse(body)
+alt Validação falha
+  val --> api : ZodError (422)
+  api --> svc : 422 { errors }
+  svc --> form : exibe erros
+else Validação ok
+  val -> ctrl : req.body validado
+  ctrl -> biz : registerOng(data)
+  biz -> repo : findUserByEmail(email)
+  repo -> db : SELECT users WHERE email
+  db --> repo : null
+  biz -> repo : findOngByCnpj(cnpj)
+  repo -> db : SELECT ongs WHERE cnpj
+  db --> repo : null
+  biz -> repo : createOng({...dados, description, animal_capacity})
+  repo -> db : INSERT INTO ongs
+  db --> repo : ok
+  biz -> repo : createUser({...})
+  repo -> db : INSERT INTO users
+  db --> repo : ok
+  biz -> repo : createEmailConfirmation({...})
+  repo -> db : INSERT INTO email_confirmations
+  db --> repo : ok
+  biz --> ctrl : { message }
+  ctrl --> api : 201 { message }
+  api --> svc : 201
+  svc --> form : sucesso
+  form --> user : Mensagem de sucesso\n+ redirect /login
+end
+
+@enduml

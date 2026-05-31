@@ -1,0 +1,69 @@
+@startuml activity_register_ong_hu01
+!theme plain
+title Atividade — Fluxo de Cadastro de ONG (HU-01)
+
+start
+
+:Usuário acessa /register/ong;
+
+:Preenche campos obrigatórios:
+- Nome do responsável
+- E-mail institucional
+- Senha + confirmação
+- Nome da ONG
+- CNPJ
+- Telefone
+- Endereço
+- **Descrição da ONG** (50-500 chars)
+- **Capacidade de animais** (inteiro >= 1);
+
+:Clica "Cadastrar ONG";
+
+partition "Validação Frontend" {
+  if (Campos válidos?) then (não)
+    :Exibe mensagens de erro\nnos campos inválidos;
+    stop
+  else (sim)
+  endif
+}
+
+:Envia POST /api/v1/auth/register/ong;
+
+partition "Validação Backend (Zod)" {
+  if (Payload válido?) then (não)
+    :Retorna 422\n+ detalhes dos erros;
+    :Frontend exibe erros;
+    stop
+  else (sim)
+  endif
+}
+
+partition "Regras de Negócio" {
+  if (E-mail já existe?) then (sim)
+    :Retorna erro EMAIL_ALREADY_EXISTS;
+    :Frontend exibe no campo email;
+    stop
+  else (não)
+  endif
+
+  if (CNPJ já existe?) then (sim)
+    :Retorna erro CNPJ_ALREADY_EXISTS;
+    :Frontend exibe no campo cnpj;
+    stop
+  else (não)
+  endif
+}
+
+partition "Persistência" {
+  :Cria registro na tabela **ongs**\n(com description e animal_capacity);
+  :Cria registro na tabela **users**\n(role = ONG_ADMIN, ong_id vinculado);
+  :Cria registro em **email_confirmations**;
+  :Envia e-mail de confirmação;
+}
+
+:Retorna 201 { message };
+:Frontend exibe sucesso\n+ redireciona para /login;
+
+stop
+
+@enduml
