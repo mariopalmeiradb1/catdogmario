@@ -1,6 +1,7 @@
 import { ongManagementRepository } from './ong-management.repository';
 import { OngDetail, OngListFilters, PaginatedResponse, OngListItem, UpdateOngInput, UpdateOngAdminInput } from './ong-management.types';
 import { OngNotFoundError, InvalidOngStatusTransitionError, CnpjDuplicateError } from './ong-management.errors';
+import { recordAuditLog } from '~/shared/services/audit-log.shared';
 
 export class OngManagementService {
   async list(filters: OngListFilters): Promise<PaginatedResponse<OngListItem>> {
@@ -24,7 +25,7 @@ export class OngManagementService {
     return ong;
   }
 
-  async approve(ongId: string): Promise<void> {
+  async approve(ongId: string, performedByUserId?: string): Promise<void> {
     const ong = await ongManagementRepository.findById(ongId);
     if (!ong) {
       throw new OngNotFoundError();
@@ -33,9 +34,18 @@ export class OngManagementService {
       throw new InvalidOngStatusTransitionError();
     }
     await ongManagementRepository.updateStatus(ongId, 'approved');
+    if (performedByUserId) {
+      await recordAuditLog({
+        user_id: performedByUserId,
+        ong_id: ongId,
+        action: 'ong.approve',
+        entity: 'ong',
+        entity_id: ongId,
+      });
+    }
   }
 
-  async reject(ongId: string): Promise<void> {
+  async reject(ongId: string, performedByUserId?: string): Promise<void> {
     const ong = await ongManagementRepository.findById(ongId);
     if (!ong) {
       throw new OngNotFoundError();
@@ -44,9 +54,18 @@ export class OngManagementService {
       throw new InvalidOngStatusTransitionError();
     }
     await ongManagementRepository.updateStatus(ongId, 'rejected', { rejected_at: new Date() });
+    if (performedByUserId) {
+      await recordAuditLog({
+        user_id: performedByUserId,
+        ong_id: ongId,
+        action: 'ong.reject',
+        entity: 'ong',
+        entity_id: ongId,
+      });
+    }
   }
 
-  async deactivate(ongId: string): Promise<void> {
+  async deactivate(ongId: string, performedByUserId?: string): Promise<void> {
     const ong = await ongManagementRepository.findById(ongId);
     if (!ong) {
       throw new OngNotFoundError();
@@ -55,9 +74,18 @@ export class OngManagementService {
       throw new InvalidOngStatusTransitionError();
     }
     await ongManagementRepository.updateStatus(ongId, 'inactive', { deactivated_at: new Date() });
+    if (performedByUserId) {
+      await recordAuditLog({
+        user_id: performedByUserId,
+        ong_id: ongId,
+        action: 'ong.deactivate',
+        entity: 'ong',
+        entity_id: ongId,
+      });
+    }
   }
 
-  async reactivate(ongId: string): Promise<void> {
+  async reactivate(ongId: string, performedByUserId?: string): Promise<void> {
     const ong = await ongManagementRepository.findById(ongId);
     if (!ong) {
       throw new OngNotFoundError();
@@ -66,6 +94,15 @@ export class OngManagementService {
       throw new InvalidOngStatusTransitionError();
     }
     await ongManagementRepository.updateStatus(ongId, 'approved', { deactivated_at: null });
+    if (performedByUserId) {
+      await recordAuditLog({
+        user_id: performedByUserId,
+        ong_id: ongId,
+        action: 'ong.reactivate',
+        entity: 'ong',
+        entity_id: ongId,
+      });
+    }
   }
 
   async updateByOngAdmin(userId: string, data: UpdateOngInput): Promise<OngDetail> {

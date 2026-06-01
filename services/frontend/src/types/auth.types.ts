@@ -9,6 +9,7 @@ export interface User {
 export interface LoginResponse {
   access_token: string;
   user: User;
+  must_change_password?: boolean;
 }
 
 export interface RegisterAdopterData {

@@ -68,3 +68,85 @@ export const capacityRules: Rule[] = [
 export function stripMask(value: string): string {
   return value.replace(/\D/g, '');
 }
+
+export function isValidCpf(cpf: string): boolean {
+  const digits = cpf.replace(/\D/g, '');
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(digits[i]) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(digits[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(digits[i]) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  return remainder === parseInt(digits[10]);
+}
+
+export const cpfRules: Rule[] = [
+  { required: true, message: VALIDATION_MESSAGES.REQUIRED },
+  {
+    validator(_, value) {
+      if (!value) return Promise.resolve();
+      const digits = value.replace(/\D/g, '');
+      if (digits.length !== 11) {
+        return Promise.reject(new Error(VALIDATION_MESSAGES.CPF_INVALID));
+      }
+      if (!isValidCpf(digits)) {
+        return Promise.reject(new Error(VALIDATION_MESSAGES.CPF_INVALID));
+      }
+      return Promise.resolve();
+    },
+  },
+];
+
+export const rgRules: Rule[] = [
+  { required: true, message: VALIDATION_MESSAGES.REQUIRED },
+  { max: 20, message: VALIDATION_MESSAGES.RG_MAX },
+];
+
+export const birthDateRules: Rule[] = [
+  { required: true, message: VALIDATION_MESSAGES.REQUIRED },
+  {
+    validator(_, value) {
+      if (!value) return Promise.resolve();
+      const dateStr = typeof value === 'string' ? value : value.format?.('YYYY-MM-DD');
+      if (!dateStr) return Promise.reject(new Error(VALIDATION_MESSAGES.REQUIRED));
+      const birth = new Date(dateStr);
+      const today = new Date();
+      const age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      const hasHadBirthday =
+        monthDiff > 0 || (monthDiff === 0 && today.getDate() >= birth.getDate());
+      const fullAge = hasHadBirthday ? age : age - 1;
+      if (fullAge < 18) {
+        return Promise.reject(new Error(VALIDATION_MESSAGES.BIRTH_DATE_UNDERAGE));
+      }
+      return Promise.resolve();
+    },
+  },
+];
+
+export const zipCodeRules: Rule[] = [
+  { required: true, message: VALIDATION_MESSAGES.REQUIRED },
+  {
+    pattern: /^\d{8}$/,
+    message: VALIDATION_MESSAGES.ZIP_CODE_INVALID,
+  },
+];
+
+export const stateRules: Rule[] = [
+  { required: true, message: VALIDATION_MESSAGES.REQUIRED },
+  {
+    pattern: /^[A-Z]{2}$/,
+    message: VALIDATION_MESSAGES.REQUIRED,
+  },
+];

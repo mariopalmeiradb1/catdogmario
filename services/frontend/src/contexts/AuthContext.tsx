@@ -3,10 +3,14 @@ import type { User } from '~/types/auth.types';
 import { authService, setAccessToken, setLogoutCallback } from '~/services/auth.service';
 import { AuthContext } from './auth-context';
 
+export { AuthContext };
+
 export interface AuthContextValue {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  mustChangePassword: boolean;
+  setMustChangePassword: (value: boolean) => void;
   login(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
 }
@@ -18,10 +22,12 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   const clearSession = useCallback(() => {
     setUser(null);
     setAccessToken(null);
+    setMustChangePassword(false);
   }, []);
 
   useEffect(() => {
@@ -34,6 +40,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const data = await authService.refresh();
         setAccessToken(data.access_token);
         setUser(data.user);
+        if (data.must_change_password) {
+          setMustChangePassword(true);
+        }
       } catch {
         clearSession();
       } finally {
@@ -47,6 +56,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const data = await authService.login(email, password);
     setAccessToken(data.access_token);
     setUser(data.user);
+    if (data.must_change_password) {
+      setMustChangePassword(true);
+    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -61,6 +73,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isAuthenticated: !!user,
     isLoading,
+    mustChangePassword,
+    setMustChangePassword,
     login,
     logout,
   };

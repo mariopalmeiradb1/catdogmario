@@ -42,7 +42,7 @@ export class OngManagementController {
 
   async approve(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await ongManagementService.approve(req.params.id);
+      await ongManagementService.approve(req.params.id, req.user!.userId);
       res.status(HttpStatus.OK).json({ message: 'ONG aprovada com sucesso.' });
     } catch (error) {
       next(error);
@@ -51,7 +51,7 @@ export class OngManagementController {
 
   async reject(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await ongManagementService.reject(req.params.id);
+      await ongManagementService.reject(req.params.id, req.user!.userId);
       res.status(HttpStatus.OK).json({ message: 'ONG rejeitada.' });
     } catch (error) {
       next(error);
@@ -60,7 +60,7 @@ export class OngManagementController {
 
   async deactivate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await ongManagementService.deactivate(req.params.id);
+      await ongManagementService.deactivate(req.params.id, req.user!.userId);
       res.status(HttpStatus.OK).json({ message: 'ONG desativada com sucesso.' });
     } catch (error) {
       next(error);
@@ -69,7 +69,7 @@ export class OngManagementController {
 
   async reactivate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await ongManagementService.reactivate(req.params.id);
+      await ongManagementService.reactivate(req.params.id, req.user!.userId);
       res.status(HttpStatus.OK).json({ message: 'ONG reativada com sucesso.' });
     } catch (error) {
       next(error);

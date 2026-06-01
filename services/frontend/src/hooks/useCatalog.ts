@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { AxiosError } from 'axios';
 import { getAnimals } from '~/services/catalog.service';
 import { PAGE_SIZE } from '~/components/catalog/catalog.constants';
 import type { CatalogAnimal, CatalogFilters } from '~/types/catalog.types';
+import type { ApiError } from '~/types/api.types';
 
 interface UseCatalogReturn {
   animals: CatalogAnimal[];
@@ -95,7 +97,12 @@ export function useCatalog(): UseCatalogReturn {
         cursorRef.current = response.pagination.next_cursor;
       } catch (err) {
         if (controller.signal.aborted) return;
-        setError('Não foi possível carregar os animais. Tente novamente em alguns instantes.');
+        const axiosError = err as AxiosError<ApiError>;
+        const msg = axiosError.response?.data?.error?.message
+          || (axiosError.code === 'ERR_NETWORK'
+            ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+            : 'Não foi possível carregar os animais. Tente novamente em alguns instantes.');
+        setError(msg);
       } finally {
         isLoadingRef.current = false;
         setLoading(false);

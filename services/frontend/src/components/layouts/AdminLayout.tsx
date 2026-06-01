@@ -1,5 +1,5 @@
 import { Layout, Menu, Button, theme } from 'antd';
-import { LogoutOutlined, BankOutlined } from '@ant-design/icons';
+import { LogoutOutlined, BankOutlined, AuditOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
@@ -16,6 +16,11 @@ export function AdminLayout() {
       key: '/admin/ongs',
       icon: <BankOutlined />,
       label: 'ONGs',
+    },
+    {
+      key: '/admin/audit-logs',
+      icon: <AuditOutlined />,
+      label: 'Logs de Auditoria',
     },
   ];
 

@@ -7,6 +7,7 @@ import type {
   ResetPasswordData,
   User,
 } from '~/types/auth.types';
+import type { ChangePasswordInput } from '~/types/volunteer.types';
 
 const api = axios.create({
   baseURL: env.VITE_API_URL,
@@ -142,6 +143,11 @@ export const authService = {
 
   async getMe(): Promise<User> {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  async changePassword(data: ChangePasswordInput): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>('/auth/change-password', data);
     return response.data;
   },
 };

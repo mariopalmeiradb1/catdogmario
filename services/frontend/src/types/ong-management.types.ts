@@ -34,12 +34,7 @@ export interface OngListFilters {
   limit: number;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-}
+export type { PaginatedResponse } from './shared.types';
 
 export interface UpdateOngData {
   name?: string;

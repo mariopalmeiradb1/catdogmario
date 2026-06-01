@@ -13,11 +13,17 @@ import { ConfirmEmailPage } from '~/pages/auth/ConfirmEmailPage';
 import { ForgotPasswordPage } from '~/pages/auth/ForgotPasswordPage';
 import { VerifyCodePage } from '~/pages/auth/VerifyCodePage';
 import { ResetPasswordPage } from '~/pages/auth/ResetPasswordPage';
+import { ForceChangePasswordPage } from '~/pages/auth/ForceChangePasswordPage';
 import { CatalogPage } from '~/pages/public/CatalogPage';
 import { DashboardPage } from '~/pages/ong/DashboardPage';
 import { OngProfilePage } from '~/pages/ong/OngProfilePage';
+import { VolunteerListPage } from '~/pages/ong/VolunteerListPage';
+import { VolunteerCreatePage } from '~/pages/ong/VolunteerCreatePage';
+import { VolunteerEditPage } from '~/pages/ong/VolunteerEditPage';
+import { AuditLogPage } from '~/pages/ong/AuditLogPage';
 import { OngListPage } from '~/pages/admin/OngListPage';
 import { OngEditPage } from '~/pages/admin/OngEditPage';
+import { AdminAuditLogPage } from '~/pages/admin/AdminAuditLogPage';
 
 export function AppRoutes() {
   return (
@@ -38,6 +44,11 @@ export function AppRoutes() {
         <Route path="/catalog" element={<CatalogPage />} />
       </Route>
 
+      {/* Force change password - authenticated, skip password check */}
+      <Route element={<PrivateRoute skipPasswordCheck />}>
+        <Route path="/change-password" element={<ForceChangePasswordPage />} />
+      </Route>
+
       {/* Private: Adopter */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['adopter']} />}>
@@ -47,12 +58,24 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      {/* Private: ONG */}
+      {/* Private: ONG - ong_volunteer and ong_admin */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['ong_volunteer', 'ong_admin']} />}>
           <Route element={<OngLayout />}>
             <Route path="/ong/dashboard" element={<DashboardPage />} />
             <Route path="/ong/profile" element={<OngProfilePage />} />
+          </Route>
+        </Route>
+      </Route>
+
+      {/* Private: ONG - ong_admin only */}
+      <Route element={<PrivateRoute />}>
+        <Route element={<RoleRoute allowedRoles={['ong_admin']} />}>
+          <Route element={<OngLayout />}>
+            <Route path="/ong/volunteers" element={<VolunteerListPage />} />
+            <Route path="/ong/volunteers/create" element={<VolunteerCreatePage />} />
+            <Route path="/ong/volunteers/:id/edit" element={<VolunteerEditPage />} />
+            <Route path="/ong/audit-logs" element={<AuditLogPage />} />
           </Route>
         </Route>
       </Route>
@@ -64,6 +87,7 @@ export function AppRoutes() {
             <Route path="/admin/ongs" element={<OngListPage />} />
             <Route path="/admin/ongs/:id" element={<Navigate to="edit" replace />} />
             <Route path="/admin/ongs/:id/edit" element={<OngEditPage />} />
+            <Route path="/admin/audit-logs" element={<AdminAuditLogPage />} />
           </Route>
         </Route>
       </Route>

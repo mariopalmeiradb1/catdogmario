@@ -1,6 +1,6 @@
 import { Layout, Menu, Button, theme } from 'antd';
-import { LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { LogoutOutlined, FileTextOutlined, TeamOutlined, BankOutlined, AuditOutlined } from '@ant-design/icons';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
 
@@ -9,6 +9,7 @@ const { Header, Sider, Content } = Layout;
 export function OngLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { token } = theme.useToken();
 
   const menuItems = [
@@ -17,6 +18,25 @@ export function OngLayout() {
       icon: <FileTextOutlined />,
       label: 'Solicitações',
     },
+    {
+      key: '/ong/profile',
+      icon: <BankOutlined />,
+      label: 'Perfil da ONG',
+    },
+    ...(user?.role === 'ong_admin'
+      ? [
+          {
+            key: '/ong/volunteers',
+            icon: <TeamOutlined />,
+            label: 'Voluntários',
+          },
+          {
+            key: '/ong/audit-logs',
+            icon: <AuditOutlined />,
+            label: 'Logs de Auditoria',
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -27,7 +47,7 @@ export function OngLayout() {
         </div>
         <Menu
           mode="inline"
-          defaultSelectedKeys={['/ong/dashboard']}
+          selectedKeys={[location.pathname]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
         />

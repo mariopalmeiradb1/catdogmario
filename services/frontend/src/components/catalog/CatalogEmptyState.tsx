@@ -2,16 +2,17 @@ import { Button, Empty, Result } from 'antd';
 
 interface CatalogEmptyStateProps {
   type: 'empty' | 'no-results' | 'error';
+  message?: string;
   onRetry?: () => void;
 }
 
-export function CatalogEmptyState({ type, onRetry }: CatalogEmptyStateProps) {
+export function CatalogEmptyState({ type, message: errorMessage, onRetry }: CatalogEmptyStateProps) {
   if (type === 'error') {
     return (
       <Result
         status="error"
         title="Erro ao carregar"
-        subTitle="Não foi possível carregar os animais. Tente novamente em alguns instantes."
+        subTitle={errorMessage || 'Não foi possível carregar os animais. Tente novamente em alguns instantes.'}
         extra={
           onRetry && (
             <Button type="primary" onClick={onRetry}>

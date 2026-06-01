@@ -10,6 +10,8 @@ function renderWithProviders(authValue?: Partial<AuthContextValue>) {
     user: null,
     isAuthenticated: false,
     isLoading: false,
+    mustChangePassword: false,
+    setMustChangePassword: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
     ...authValue,

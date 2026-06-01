@@ -15,7 +15,7 @@ interface LoginFormValues {
 }
 
 export function LoginForm() {
-  const { login, user } = useAuth();
+  const { login, user, mustChangePassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,7 +25,10 @@ export function LoginForm() {
       await login(values.email, values.password);
     } catch (err) {
       const error = err as AxiosError<ApiError>;
-      const msg = error.response?.data?.error?.message || 'Erro ao fazer login.';
+      const msg = error.response?.data?.error?.message
+        || (error.code === 'ERR_NETWORK'
+          ? 'Não foi possível conectar ao servidor. Verifique sua conexão.'
+          : 'Erro ao fazer login.');
       message.error(msg);
     } finally {
       setLoading(false);
@@ -33,7 +36,11 @@ export function LoginForm() {
   }
 
   if (user) {
-    navigate(getRoleHome(user.role), { replace: true });
+    if (mustChangePassword) {
+      navigate('/change-password', { replace: true });
+    } else {
+      navigate(getRoleHome(user.role), { replace: true });
+    }
     return null;
   }
 

@@ -26,4 +26,22 @@ export const VALIDATION_MESSAGES = {
   DESCRIPTION_MIN: 'Descrição deve ter no mínimo 50 caracteres.',
   DESCRIPTION_MAX: 'Descrição deve ter no máximo 500 caracteres.',
   CAPACITY_INVALID: 'Capacidade deve ser um número inteiro maior que zero.',
+  CPF_INVALID: 'CPF inválido.',
+  BIRTH_DATE_UNDERAGE: 'O voluntário deve ter pelo menos 18 anos.',
+  RG_MAX: 'RG deve ter no máximo 20 caracteres.',
+  ZIP_CODE_INVALID: 'CEP inválido. Informe 8 dígitos.',
+};
+
+export const VOLUNTEER_MESSAGES = {
+  CREATE_SUCCESS: 'Voluntário cadastrado com sucesso.',
+  UPDATE_SUCCESS: 'Dados atualizados com sucesso.',
+  DEACTIVATE_SUCCESS: 'Voluntário desativado com sucesso.',
+  REACTIVATE_SUCCESS: 'Voluntário reativado com sucesso.',
+  REMOVE_SUCCESS: 'Voluntário removido com sucesso.',
+  CHANGE_PASSWORD_SUCCESS: 'Senha alterada com sucesso.',
+  CONFIRM_DEACTIVATE:
+    'Tem certeza que deseja desativar este voluntário? O acesso será revogado imediatamente.',
+  CONFIRM_REACTIVATE: 'Deseja reativar este voluntário?',
+  CONFIRM_REMOVE:
+    'Tem certeza que deseja remover este voluntário? Esta ação não pode ser desfeita.',
 };

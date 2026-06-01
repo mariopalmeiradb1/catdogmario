@@ -36,7 +36,7 @@ export function CatalogPage() {
         </Typography.Text>
       )}
 
-      {error && <CatalogEmptyState type="error" onRetry={retry} />}
+      {error && <CatalogEmptyState type="error" message={error} onRetry={retry} />}
 
       {showEmpty && (
         <CatalogEmptyState type={hasActiveFilters ? 'no-results' : 'empty'} />

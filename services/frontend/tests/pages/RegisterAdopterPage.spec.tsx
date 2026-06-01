@@ -19,6 +19,8 @@ function renderWithProviders() {
     user: null,
     isAuthenticated: false,
     isLoading: false,
+    mustChangePassword: false,
+    setMustChangePassword: vi.fn(),
     login: vi.fn(),
     logout: vi.fn(),
   };
