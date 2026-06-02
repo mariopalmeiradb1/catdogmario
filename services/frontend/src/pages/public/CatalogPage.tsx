@@ -5,6 +5,7 @@ import { AnimalCardSkeleton } from '~/components/catalog/AnimalCardSkeleton';
 import { CatalogSearchBar } from '~/components/catalog/CatalogSearchBar';
 import { CatalogFilters } from '~/components/catalog/CatalogFilters';
 import { CatalogEmptyState } from '~/components/catalog/CatalogEmptyState';
+import { AnimalDetailModal } from '~/components/catalog/AnimalDetailModal';
 import { useState } from 'react';
 
 const { Title } = Typography;
@@ -13,6 +14,7 @@ export function CatalogPage() {
   const { animals, loading, hasMore, error, filters, setFilters, retry, sentinelRef } =
     useCatalog();
   const [searchInput, setSearchInput] = useState(filters.search || '');
+  const [selectedAnimalId, setSelectedAnimalId] = useState<string | null>(null);
 
   const hasActiveFilters = Object.keys(filters).length > 0;
   const showEmpty = !error && animals.length === 0 && !loading;
@@ -46,7 +48,7 @@ export function CatalogPage() {
         <Row gutter={[24, 24]}>
           {animals.map((animal) => (
             <Col xs={24} sm={12} md={8} lg={6} key={animal.id}>
-              <AnimalCard animal={animal} />
+              <AnimalCard animal={animal} onClick={setSelectedAnimalId} />
             </Col>
           ))}
           {loading &&
@@ -69,6 +71,11 @@ export function CatalogPage() {
       )}
 
       {hasMore && !error && <div ref={sentinelRef} style={{ height: 1 }} />}
+
+      <AnimalDetailModal
+        animalId={selectedAnimalId}
+        onClose={() => setSelectedAnimalId(null)}
+      />
     </div>
   );
 }

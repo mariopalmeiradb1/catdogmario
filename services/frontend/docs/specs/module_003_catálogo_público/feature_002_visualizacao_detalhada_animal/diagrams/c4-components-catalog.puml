@@ -1,0 +1,58 @@
+@startuml
+!theme cerulean
+title C4 Componentes — Catalog Domain (com detalhe)
+
+package "Frontend (React + AntDesign)" {
+  [CatalogPage] as page
+  [AnimalCard] as card
+  [AnimalDetailModal] as modal
+  [MediaCarousel] as carousel
+  [useAnimalDetail] as hook
+  [catalog.service] as frontSvc
+}
+
+package "Backend — Catalog Domain (Express)" {
+  [catalog.routes] as routes
+  [catalog.controller] as ctrl
+  [catalog.service] as svc
+  [catalog.repository] as repo
+  [catalog.validator] as validator
+  [catalog.types] as types
+}
+
+database "MySQL" as db {
+  [animals] as tAnimals
+  [animal_media] as tMedia
+  [ongs] as tOngs
+}
+
+page --> card : renderiza grid
+card --> modal : onClick(animalId)
+modal --> carousel : renderiza mídia
+modal --> hook : getAnimalDetail(id)
+hook --> frontSvc : GET /catalog/:id
+
+frontSvc --> routes : HTTP GET
+routes --> validator : valida :id (uuid)
+routes --> ctrl : dispatch
+ctrl --> svc : getAnimalDetail(id)
+svc --> repo : findByIdPublic(id)
+repo --> tAnimals : SELECT
+repo --> tMedia : JOIN
+repo --> tOngs : JOIN
+
+note right of modal
+  Responsabilidades:
+  - Layout de seções condicionais
+  - Botão de ação (disabled)
+  - Loading/Error states
+end note
+
+note right of repo
+  Novo método: findByIdPublic(id)
+  - Sem exigir ongId
+  - Valida status público
+  - JOIN com ongs e media
+end note
+
+@enduml

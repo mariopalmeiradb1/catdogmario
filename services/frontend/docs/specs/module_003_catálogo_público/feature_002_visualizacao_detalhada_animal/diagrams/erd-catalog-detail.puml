@@ -1,0 +1,63 @@
+@startuml
+!theme cerulean
+title ERD — Entidades da Visualização Detalhada (Catálogo Público)
+
+entity "animals" as animals {
+  * id : uuid <<PK>>
+  --
+  # ong_id : uuid <<FK>>
+  name : varchar(100)
+  species : enum('dog','cat')
+  breed : varchar(100)
+  sex : enum('male','female')
+  castration : enum('yes','no','unknown')
+  temperament : json
+  estimated_age_category : enum('puppy','young','adult','senior')
+  size : enum('small','medium','large')
+  weight_kg : decimal(5,2)
+  height_cm : decimal(5,2)
+  length_cm : decimal(5,2)
+  special_needs : boolean
+  special_needs_description : text
+  rescue_observations : text
+  general_observations : text
+  status : enum('available','in_adoption_process','adopted','inactive')
+  photo_url : varchar(500)
+  created_at : timestamp
+  updated_at : timestamp
+  inactivated_at : timestamp
+}
+
+entity "animal_media" as media {
+  * id : uuid <<PK>>
+  --
+  # animal_id : uuid <<FK>>
+  type : enum('photo','video')
+  url : varchar(500)
+  original_name : varchar(255)
+  size_bytes : bigint
+  mime_type : varchar(100)
+  sort_order : int
+}
+
+entity "ongs" as ongs {
+  * id : uuid <<PK>>
+  --
+  name : varchar(200)
+  city : varchar(100)
+  state : varchar(2)
+  phone : varchar(20)
+  email : varchar(200)
+  status : enum('pending','approved','rejected','inactive')
+}
+
+animals ||--o{ media : "possui"
+ongs ||--o{ animals : "cadastra"
+
+note bottom of animals
+  Filtro público:
+  status IN ('available', 'in_adoption_process')
+  AND ong.status = 'approved'
+end note
+
+@enduml

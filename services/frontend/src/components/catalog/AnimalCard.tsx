@@ -7,6 +7,7 @@ const { Text, Paragraph } = Typography;
 
 interface AnimalCardProps {
   animal: CatalogAnimal;
+  onClick?: (id: string) => void;
 }
 
 const cardStyle: CSSProperties = {
@@ -80,7 +81,7 @@ function PlaceholderIcon({ species }: { species: 'dog' | 'cat' }) {
   return <div style={placeholderStyle}>{icon}</div>;
 }
 
-export function AnimalCard({ animal }: AnimalCardProps) {
+export function AnimalCard({ animal, onClick }: AnimalCardProps) {
   const cover = animal.photo_url ? (
     <img
       src={animal.photo_url}
@@ -103,6 +104,7 @@ export function AnimalCard({ animal }: AnimalCardProps) {
       style={cardStyle}
       cover={cover}
       bodyStyle={{ padding: 16 }}
+      onClick={() => onClick?.(animal.id)}
     >
       <div style={nameStyle} title={animal.name}>
         {animal.name}

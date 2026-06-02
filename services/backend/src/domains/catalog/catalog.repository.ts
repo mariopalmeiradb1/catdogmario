@@ -1,5 +1,5 @@
 import { db } from '~/config/database';
-import { CatalogAnimal, CatalogFilters } from './catalog.types';
+import { CatalogAnimal, CatalogAnimalDetail, CatalogAnimalMedia, CatalogFilters } from './catalog.types';
 
 interface RepositoryResult {
   items: CatalogAnimal[];
@@ -87,6 +87,94 @@ export class CatalogRepository {
     const items = rows.slice(0, limit).map(this.mapToAnimal);
 
     return { items, hasMore };
+  }
+
+  async findByIdPublic(id: string): Promise<CatalogAnimalDetail | null> {
+    const row = await db('animals as a')
+      .join('ongs as o', 'a.ong_id', 'o.id')
+      .whereIn('a.status', ['available', 'in_adoption_process'])
+      .where('o.status', 'approved')
+      .where('a.id', id)
+      .select(
+        'a.id',
+        'a.name',
+        'a.species',
+        'a.breed',
+        'a.sex',
+        'a.castration',
+        'a.temperament',
+        'a.estimated_age_months',
+        'a.estimated_age_category',
+        'a.size',
+        'a.weight_kg',
+        'a.height_cm',
+        'a.length_cm',
+        'a.special_needs',
+        'a.special_needs_description',
+        'a.rescue_observations',
+        'a.general_observations',
+        'a.status',
+        'o.name as ong_name',
+        'o.city as ong_city',
+        'o.state as ong_state',
+        'o.phone as ong_phone',
+      )
+      .first();
+
+    if (!row) return null;
+
+    const mediaRows = await db('animal_media')
+      .where({ animal_id: id })
+      .select('id', 'type', 'url', 'mime_type', 'sort_order')
+      .orderBy('sort_order', 'asc');
+
+    const temperament = this.parseTemperament(row.temperament);
+
+    const media: CatalogAnimalMedia[] = mediaRows.map((m: Record<string, unknown>) => ({
+      id: m.id as string,
+      type: m.type as 'photo' | 'video',
+      url: m.url as string,
+      mime_type: m.mime_type as string,
+      sort_order: Number(m.sort_order),
+    }));
+
+    return {
+      id: row.id as string,
+      name: row.name as string,
+      species: row.species as 'dog' | 'cat',
+      breed: row.breed as string,
+      sex: row.sex as 'male' | 'female',
+      castration: row.castration as 'yes' | 'no' | 'unknown',
+      temperament,
+      estimated_age_months: Number(row.estimated_age_months),
+      estimated_age_category: (row.estimated_age_category as 'puppy' | 'young' | 'adult' | 'senior') || null,
+      size: (row.size as 'small' | 'medium' | 'large') || null,
+      weight_kg: row.weight_kg != null ? Number(row.weight_kg) : null,
+      height_cm: row.height_cm != null ? Number(row.height_cm) : null,
+      length_cm: row.length_cm != null ? Number(row.length_cm) : null,
+      special_needs: Boolean(row.special_needs),
+      special_needs_description: (row.special_needs_description as string) || null,
+      rescue_observations: (row.rescue_observations as string) || null,
+      general_observations: (row.general_observations as string) || null,
+      status: row.status as 'available' | 'in_adoption_process',
+      media,
+      ong: {
+        name: row.ong_name as string,
+        city: (row.ong_city as string) || null,
+        state: (row.ong_state as string) || null,
+        phone: (row.ong_phone as string) || null,
+      },
+    };
+  }
+
+  private parseTemperament(raw: unknown): string[] {
+    if (!raw) return [];
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
   }
 
   private mapToAnimal(row: Record<string, unknown>): CatalogAnimal {

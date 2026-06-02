@@ -13,6 +13,16 @@ export class CatalogController {
       next(error);
     }
   }
+
+  async detail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      const result = await catalogService.getAnimalDetail(id);
+      res.status(HttpStatus.OK).json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const catalogController = new CatalogController();

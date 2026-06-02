@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { env } from '~/config/env';
-import type { CatalogQueryParams, CatalogResponse } from '~/types/catalog.types';
+import type { CatalogAnimalDetail, CatalogQueryParams, CatalogResponse } from '~/types/catalog.types';
 
 const catalogApi = axios.create({
   baseURL: env.VITE_API_URL,
@@ -24,4 +24,15 @@ export async function getAnimals(
   });
 
   return data;
+}
+
+export async function getAnimalDetail(
+  id: string,
+  signal?: AbortSignal,
+): Promise<CatalogAnimalDetail> {
+  const { data } = await catalogApi.get<{ data: CatalogAnimalDetail }>(`/catalog/${id}`, {
+    signal,
+  });
+
+  return data.data;
 }

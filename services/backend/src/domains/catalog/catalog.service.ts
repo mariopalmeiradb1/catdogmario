@@ -1,5 +1,6 @@
 import { catalogRepository } from './catalog.repository';
-import { CatalogFilters, CatalogResponse } from './catalog.types';
+import { AppError } from '~/domains/auth/auth.errors';
+import { CatalogAnimalDetail, CatalogFilters, CatalogResponse } from './catalog.types';
 
 export class CatalogService {
   async listAnimals(filters: CatalogFilters): Promise<CatalogResponse> {
@@ -19,6 +20,16 @@ export class CatalogService {
         has_more: hasMore,
       },
     };
+  }
+
+  async getAnimalDetail(id: string): Promise<CatalogAnimalDetail> {
+    const detail = await catalogRepository.findByIdPublic(id);
+
+    if (!detail) {
+      throw new AppError(404, 'ANIMAL_NOT_FOUND', 'Animal não encontrado no catálogo.');
+    }
+
+    return detail;
   }
 }
 

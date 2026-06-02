@@ -1,0 +1,37 @@
+@startuml
+!theme cerulean
+title Sequência — Visualização Detalhada do Animal (Catálogo Público)
+
+actor "Visitante" as user
+participant "AnimalCard\n(React)" as card
+participant "AnimalDetailModal\n(React)" as modal
+participant "useAnimalDetail\n(Hook)" as hook
+participant "catalog.service\n(Axios)" as svc
+participant "CatalogController\n(Express)" as ctrl
+participant "CatalogService\n(Backend)" as bsvc
+participant "CatalogRepository\n(Knex)" as repo
+database "MySQL" as db
+
+user -> card : Clica no card
+card -> modal : abre modal (animalId)
+modal -> hook : getAnimalDetail(id)
+hook -> svc : getAnimalDetail(id)
+svc -> ctrl : GET /api/v1/catalog/:id
+ctrl -> bsvc : getAnimalDetail(id)
+bsvc -> repo : findByIdPublic(id)
+repo -> db : SELECT animals\nJOIN animal_media\nJOIN ongs\nWHERE status IN (...)\nAND ong.status = 'approved'
+db --> repo : rows
+repo --> bsvc : CatalogAnimalDetail | null
+bsvc --> ctrl : CatalogAnimalDetail
+ctrl --> svc : 200 { data: CatalogAnimalDetail }
+svc --> hook : CatalogAnimalDetail
+hook --> modal : { data, loading, error }
+modal --> user : Renderiza modal com detalhes
+
+== Fluxo de erro ==
+
+svc -[#red]-> hook : 404 Animal não encontrado
+hook -[#red]-> modal : error state
+modal -[#red]-> user : Mensagem de erro
+
+@enduml
