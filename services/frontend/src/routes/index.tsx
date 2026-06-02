@@ -21,6 +21,10 @@ import { VolunteerListPage } from '~/pages/ong/VolunteerListPage';
 import { VolunteerCreatePage } from '~/pages/ong/VolunteerCreatePage';
 import { VolunteerEditPage } from '~/pages/ong/VolunteerEditPage';
 import { AuditLogPage } from '~/pages/ong/AuditLogPage';
+import { AnimalListPage } from '~/pages/ong/AnimalListPage';
+import { AnimalCreatePage } from '~/pages/ong/AnimalCreatePage';
+import { AnimalEditPage } from '~/pages/ong/AnimalEditPage';
+import { AnimalDetailPage } from '~/pages/ong/AnimalDetailPage';
 import { OngListPage } from '~/pages/admin/OngListPage';
 import { OngEditPage } from '~/pages/admin/OngEditPage';
 import { AdminAuditLogPage } from '~/pages/admin/AdminAuditLogPage';
@@ -64,6 +68,10 @@ export function AppRoutes() {
           <Route element={<OngLayout />}>
             <Route path="/ong/dashboard" element={<DashboardPage />} />
             <Route path="/ong/profile" element={<OngProfilePage />} />
+            <Route path="/ong/animals" element={<AnimalListPage />} />
+            <Route path="/ong/animals/create" element={<AnimalCreatePage />} />
+            <Route path="/ong/animals/:id" element={<AnimalDetailPage />} />
+            <Route path="/ong/animals/:id/edit" element={<AnimalEditPage />} />
           </Route>
         </Route>
       </Route>

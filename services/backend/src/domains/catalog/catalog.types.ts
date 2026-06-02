@@ -19,10 +19,11 @@ export interface CatalogAnimal {
   sex: 'male' | 'female';
   size: 'small' | 'medium' | 'large';
   estimated_age_months: number;
-  temperament: string | null;
+  temperament: string[] | string | null;
   special_needs: boolean;
   description: string | null;
   photo_url: string | null;
+  status: 'available' | 'in_adoption_process';
   ong: {
     city: string | null;
     state: string | null;

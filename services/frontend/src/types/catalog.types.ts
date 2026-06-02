@@ -26,6 +26,7 @@ export interface CatalogAnimal {
   special_needs: boolean;
   description: string | null;
   photo_url: string | null;
+  status: 'available' | 'in_adoption_process';
   ong: {
     city: string | null;
     state: string | null;

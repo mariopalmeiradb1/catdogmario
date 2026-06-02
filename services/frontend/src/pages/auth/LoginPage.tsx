@@ -29,6 +29,9 @@ export function LoginPage() {
         <span>Não tem uma conta? </span>
         <Link to="/register">Cadastre-se</Link>
       </div>
+      <div style={{ textAlign: 'center', marginTop: '16px' }}>
+        <Link to="/catalog">Ver pets</Link>
+      </div>
     </>
   );
 }

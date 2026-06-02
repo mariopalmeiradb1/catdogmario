@@ -12,7 +12,7 @@ export class CatalogRepository {
 
     let query = db('animals as a')
       .join('ongs as o', 'a.ong_id', 'o.id')
-      .where('a.status', 'available')
+      .whereIn('a.status', ['available', 'in_adoption_process'])
       .where('o.status', 'approved')
       .select(
         'a.id',
@@ -26,6 +26,7 @@ export class CatalogRepository {
         'a.special_needs',
         'a.description',
         'a.photo_url',
+        'a.status',
         'o.city as ong_city',
         'o.state as ong_state',
       );
@@ -52,7 +53,7 @@ export class CatalogRepository {
     }
 
     if (filters.temperament) {
-      query = query.andWhere('a.temperament', filters.temperament);
+      query = query.whereRaw('JSON_CONTAINS(a.temperament, ?)', [JSON.stringify(filters.temperament)]);
     }
 
     if (filters.special_needs) {
@@ -89,6 +90,18 @@ export class CatalogRepository {
   }
 
   private mapToAnimal(row: Record<string, unknown>): CatalogAnimal {
+    let temperament: string[] | string | null = null;
+    if (row.temperament) {
+      try {
+        const parsed = typeof row.temperament === 'string'
+          ? JSON.parse(row.temperament)
+          : row.temperament;
+        temperament = Array.isArray(parsed) ? parsed : null;
+      } catch {
+        temperament = row.temperament as string;
+      }
+    }
+
     return {
       id: row.id as string,
       name: row.name as string,
@@ -97,10 +110,11 @@ export class CatalogRepository {
       sex: row.sex as 'male' | 'female',
       size: row.size as 'small' | 'medium' | 'large',
       estimated_age_months: row.estimated_age_months as number,
-      temperament: (row.temperament as string) || null,
+      temperament,
       special_needs: Boolean(row.special_needs),
       description: (row.description as string) || null,
       photo_url: (row.photo_url as string) || null,
+      status: row.status as 'available' | 'in_adoption_process',
       ong: {
         city: (row.ong_city as string) || null,
         state: (row.ong_state as string) || null,

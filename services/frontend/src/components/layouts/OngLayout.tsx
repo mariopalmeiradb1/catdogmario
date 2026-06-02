@@ -1,5 +1,5 @@
 import { Layout, Menu, Button, theme } from 'antd';
-import { LogoutOutlined, FileTextOutlined, TeamOutlined, BankOutlined, AuditOutlined } from '@ant-design/icons';
+import { LogoutOutlined, FileTextOutlined, TeamOutlined, BankOutlined, AuditOutlined, HeartOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
@@ -17,6 +17,11 @@ export function OngLayout() {
       key: '/ong/dashboard',
       icon: <FileTextOutlined />,
       label: 'Solicitações',
+    },
+    {
+      key: '/ong/animals',
+      icon: <HeartOutlined />,
+      label: 'Animais',
     },
     {
       key: '/ong/profile',
