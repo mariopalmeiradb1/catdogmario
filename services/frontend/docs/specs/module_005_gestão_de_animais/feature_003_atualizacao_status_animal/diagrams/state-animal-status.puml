@@ -1,0 +1,32 @@
+@startuml
+!theme plain
+title Diagrama de Estados - Status do Animal
+
+[*] --> available : Cadastro (FEATURE-001)
+
+state available : Animal visivel no catalogo\nDisponivel para pedidos
+
+state in_adoption_process : Visivel no catalogo com badge\nPedidos bloqueados\nApenas 1 processo ativo
+
+state adopted : Removido do catalogo\nPedidos cancelados
+
+state inactive : Removido do catalogo\nDados preservados
+
+available --> in_adoption_process : Visita agendada\n[automatica - RN-01]
+in_adoption_process --> available : Todas visitas canceladas\n[automatica - RN-02]
+in_adoption_process --> adopted : Confirmar adocao\n+ termo de responsabilidade\n[manual: voluntario - RN-03]
+adopted --> available : Devolucao\n+ motivo obrigatorio\n[manual: admin - RN-04]
+available --> inactive : Inativar\n[manual: admin]
+adopted --> inactive : Inativar\n[manual: admin]
+
+note right of in_adoption_process
+  RN-05: Apenas 1 processo
+  de adocao ativo por vez
+end note
+
+note right of adopted
+  RN-06: Ao adotar, cancelar
+  pedidos pendentes (futuro)
+end note
+
+@enduml

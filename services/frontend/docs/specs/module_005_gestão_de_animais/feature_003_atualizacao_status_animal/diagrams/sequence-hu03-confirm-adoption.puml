@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title HU-03 - Confirmar Adocao
+
+actor "Voluntario" as User
+participant "Controller" as Ctrl
+participant "AnimalStatusService" as Service
+participant "AnimalManagementRepository" as Repo
+database "MySQL" as DB
+participant "AuditLog" as Audit
+participant "Modulo Pedidos\n(futuro - hook)" as Requests
+
+User -> Ctrl : PATCH /animals/:id/confirm-adoption\n{ responsibility_term_number }
+activate Ctrl
+Ctrl -> Service : confirmAdoption(animalId, ongId, userId, termNumber)
+activate Service
+
+Service -> Repo : findByIdForUpdate(animalId, ongId)
+activate Repo
+Repo -> DB : SELECT ... FOR UPDATE
+DB --> Repo : animal row (locked)
+Repo --> Service : animal
+deactivate Repo
+
+alt status != 'in_adoption_process'
+  Service --> Ctrl : throw InvalidStatusTransitionError
+else status == 'in_adoption_process'
+  Service -> Repo : updateStatusToAdopted(animalId, termNumber)
+  activate Repo
+  Repo -> DB : UPDATE animals SET\nstatus='adopted',\nresponsibility_term_number=?,\nadopted_at=NOW()
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Repo : createStatusHistory(...)
+  activate Repo
+  Repo -> DB : INSERT animal_status_history
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Audit : recordAuditLog(action: 'animal.status.confirm_adoption')
+
+  note over Service, Requests
+    Hook de integracao (futuro):
+    cancelPendingRequests(animalId)
+    Nao implementado nesta fase
+  end note
+
+  Service --> Ctrl : { id, status: 'adopted', adopted_at }
+end
+
+deactivate Service
+Ctrl --> User : 200 OK { data }
+deactivate Ctrl
+@enduml

@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title ERD — Gestão de Animais (Cadastro)
+
+entity "animals" as animals {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #ong_id : VARCHAR(36) <<FK>>
+  name : VARCHAR(100)
+  species : ENUM('dog','cat')
+  breed : VARCHAR(100)
+  sex : ENUM('male','female')
+  castration : ENUM('yes','no','unknown')
+  temperament : JSON
+  estimated_age_category : ENUM('puppy','young','adult','senior')
+  size : ENUM('small','medium','large')
+  weight_kg : DECIMAL(5,1) <<nullable>>
+  height_cm : INT UNSIGNED <<nullable>>
+  length_cm : INT UNSIGNED <<nullable>>
+  special_needs : BOOLEAN DEFAULT false
+  special_needs_description : TEXT(500) <<nullable>>
+  rescue_observations : TEXT(1000) <<nullable>>
+  general_observations : TEXT(1000) <<nullable>>
+  description : VARCHAR(500) <<nullable>>
+  status : ENUM('available','in_adoption_process','adopted') DEFAULT 'available'
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "animal_media" as animal_media {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #animal_id : VARCHAR(36) <<FK>>
+  type : ENUM('photo','video')
+  storage_path : VARCHAR(500)
+  original_filename : VARCHAR(255)
+  mime_type : VARCHAR(50)
+  size_bytes : BIGINT UNSIGNED
+  display_order : SMALLINT UNSIGNED
+  created_at : TIMESTAMP
+}
+
+entity "ongs" as ongs {
+  *id : VARCHAR(36) <<PK>>
+  --
+  name : VARCHAR(150)
+  cnpj : VARCHAR(14)
+  status : ENUM('pending','approved','rejected','inactive')
+  ...
+}
+
+ongs ||--o{ animals : "owns"
+animals ||--o{ animal_media : "has"
+@enduml

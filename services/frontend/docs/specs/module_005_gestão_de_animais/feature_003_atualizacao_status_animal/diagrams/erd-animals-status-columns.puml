@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+title ERD - Colunas adicionais na tabela animals (FEATURE-003)
+
+entity animals {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #ong_id : VARCHAR(36) <<FK>>
+  name : VARCHAR(100)
+  species : ENUM(dog, cat)
+  breed : VARCHAR(100)
+  sex : ENUM(male, female)
+  castration : ENUM(yes, no, unknown)
+  temperament : JSON
+  estimated_age_category : ENUM(puppy, young, adult, senior)
+  size : ENUM(small, medium, large)
+  weight_kg : DECIMAL(5,1)
+  height_cm : INT
+  length_cm : INT
+  special_needs : BOOLEAN
+  special_needs_description : TEXT
+  rescue_observations : TEXT
+  general_observations : TEXT
+  status : ENUM(available, in_adoption_process, adopted, inactive)
+  --
+  <color:green>**responsibility_term_number : VARCHAR(100)**</color>
+  <color:green>**adopted_at : TIMESTAMP**</color>
+  --
+  inactivated_at : TIMESTAMP
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity animal_status_history {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #animal_id : VARCHAR(36) <<FK>>
+  from_status : ENUM(available, in_adoption_process, adopted, inactive)
+  to_status : ENUM(available, in_adoption_process, adopted, inactive)
+  trigger_type : ENUM(automatic, manual)
+  trigger_reason : VARCHAR(255)
+  #triggered_by : VARCHAR(36) <<FK>>
+  metadata : JSON
+  created_at : TIMESTAMP
+}
+
+animals ||--o{ animal_status_history : "has"
+
+@enduml

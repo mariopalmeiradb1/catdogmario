@@ -1,0 +1,100 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+title ERD — FEATURE-002 Edição de Animal
+
+entity "animals" as animals {
+  * id : varchar(36) <<PK>>
+  --
+  * ong_id : varchar(36) <<FK>>
+  * name : varchar(100)
+  * species : enum(dog, cat)
+  * breed : varchar(100)
+  * sex : enum(male, female)
+  * castration : enum(yes, no, unknown)
+  temperament : json
+  * estimated_age_category : enum(puppy, young, adult, senior)
+  size : enum(small, medium, large)
+  estimated_age_months : int
+  weight_kg : decimal(5,1)
+  height_cm : int
+  length_cm : int
+  * special_needs : boolean
+  special_needs_description : text
+  description : varchar(500)
+  photo_url : varchar(500)
+  rescue_observations : text
+  general_observations : text
+  * status : enum(available, in_adoption_process, adopted, **inactive**)
+  inactivated_at : timestamp <<nullable>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "animal_media" as animal_media {
+  * id : varchar(36) <<PK>>
+  --
+  * animal_id : varchar(36) <<FK>>
+  * type : enum(photo, video)
+  * url : varchar(500)
+  * original_name : varchar(255)
+  * size_bytes : int
+  * mime_type : varchar(50)
+  * sort_order : int
+  * created_at : timestamp
+}
+
+entity "audit_logs" as audit_logs {
+  * id : varchar(36) <<PK>>
+  --
+  * user_id : varchar(36) <<FK>>
+  * user_name : varchar(255)
+  * ong_id : varchar(36) <<FK>>
+  * action : varchar(100)
+  * entity : varchar(100)
+  * entity_id : varchar(36)
+  metadata : json
+  * created_at : timestamp
+}
+
+entity "ongs" as ongs {
+  * id : varchar(36) <<PK>>
+  --
+  * name : varchar(255)
+  * status : enum(pending, approved, rejected, inactive)
+  ...
+}
+
+entity "users" as users {
+  * id : varchar(36) <<PK>>
+  --
+  * name : varchar(255)
+  * role : enum(ong_admin, ong_volunteer, adopter, system_admin)
+  ong_id : varchar(36) <<FK>>
+  ...
+}
+
+animals }|--|| ongs : "belongs_to"
+animal_media }o--|| animals : "belongs_to"
+audit_logs }o--|| users : "created_by"
+audit_logs }o--|| ongs : "scoped_to"
+users }o--o| ongs : "belongs_to"
+
+note right of animals
+  **Alterações FEATURE-002:**
+  - Adicionar 'inactive' ao enum status
+  - Adicionar coluna inactivated_at (nullable)
+  - updated_at usado para controle
+    de concorrência otimista
+end note
+
+note bottom of audit_logs
+  **metadata para animal.update:**
+  {
+    "changed_fields": {
+      "weight_kg": { "old": 5.0, "new": 6.5 },
+      "name": { "old": "Rex", "new": "Rex Jr" }
+    }
+  }
+end note
+@enduml

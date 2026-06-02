@@ -1,0 +1,105 @@
+@startuml
+!theme plain
+title Sequence — Edição de Animal (PUT /animal-management/:id)
+
+actor "Voluntário/Admin" as User
+participant "Frontend\n(AnimalEditPage)" as FE
+participant "API Gateway\n(Express Router)" as Router
+participant "AnimalManagement\nController" as Ctrl
+participant "AnimalManagement\nService" as Svc
+participant "AnimalManagement\nRepository" as Repo
+database "MySQL" as DB
+participant "AuditLog\nShared" as Audit
+
+== Carregamento do Formulário ==
+
+User -> FE : Acessa /ong/animals/:id/edit
+FE -> Router : GET /api/v1/animal-management/:id\n[Authorization: Bearer token]
+Router -> Ctrl : findById(req, res, next)
+Ctrl -> Svc : findById(id, ongId)
+Svc -> Repo : findByIdWithMedia(id, ongId)
+Repo -> DB : SELECT animals + animal_media\nWHERE id = :id AND ong_id = :ongId
+DB --> Repo : animal + media[]
+Repo --> Svc : AnimalWithMedia
+Svc --> Ctrl : AnimalWithMedia
+Ctrl --> FE : 200 { data: AnimalWithMedia }
+FE --> User : Formulário preenchido
+
+== Salvar Edição ==
+
+User -> FE : Edita campos e clica "Salvar"
+FE -> Router : PUT /api/v1/animal-management/:id\n{ ...fields, updated_at }
+Router -> Ctrl : update(req, res, next)
+Ctrl -> Svc : update(id, input, userId, ongId)
+
+Svc -> Repo : findById(id, ongId)
+Repo -> DB : SELECT * FROM animals\nWHERE id = :id AND ong_id = :ongId
+DB --> Repo : currentAnimal
+
+alt updated_at != currentAnimal.updated_at
+  Svc --> Ctrl : ConflictError (409)
+  Ctrl --> FE : 409 Conflict
+  FE --> User : "Dados foram alterados por outro usuário"
+else updated_at matches
+  Svc -> Svc : computeChangedFields(current, input)
+  
+  alt hasChanges == true
+    Svc -> Repo : update(id, changedFields)
+    Repo -> DB : UPDATE animals SET ... WHERE id = :id
+    DB --> Repo : OK
+    Svc -> Audit : recordAuditLog({\n  action: 'animal.update',\n  entity: 'animal',\n  entity_id: id,\n  metadata: { changed_fields }\n})
+    Audit -> DB : INSERT audit_logs
+  end
+  
+  Svc --> Ctrl : UpdatedAnimal
+  Ctrl --> FE : 200 { data: UpdatedAnimal }
+  FE --> User : "Dados atualizados com sucesso"
+end
+
+== Inativação (Soft Delete) ==
+
+User -> FE : Clica "Inativar" + Confirma
+FE -> Router : PATCH /api/v1/animal-management/:id/inactivate\n[Authorization: Bearer token]
+Router -> Ctrl : inactivate(req, res, next)
+Ctrl -> Svc : inactivate(id, userId, ongId)
+Svc -> Repo : findById(id, ongId)
+Repo -> DB : SELECT status FROM animals
+DB --> Repo : { status }
+
+alt status == 'in_adoption_process'
+  Svc --> Ctrl : BusinessRuleError (422)
+  Ctrl --> FE : 422 "Não é possível inativar"
+else status == 'available' || 'adopted'
+  Svc -> Repo : inactivate(id)
+  Repo -> DB : UPDATE animals SET\n  status='inactive', inactivated_at=NOW()
+  DB --> Repo : OK
+  Svc -> Audit : recordAuditLog({\n  action: 'animal.inactivate',\n  entity: 'animal',\n  entity_id: id\n})
+  Svc --> Ctrl : success
+  Ctrl --> FE : 200 "Animal inativado"
+  FE --> User : "Animal inativado com sucesso"
+end
+
+== Upload de Mídia ==
+
+User -> FE : Adiciona foto/vídeo
+FE -> Router : POST /api/v1/animal-management/:id/media\n[multipart/form-data]
+Router -> Ctrl : uploadMedia(req, res, next)
+Ctrl -> Svc : uploadMedia(id, file, userId, ongId)
+Svc -> Repo : countMedia(id, type)
+Repo -> DB : SELECT COUNT(*) FROM animal_media
+DB --> Repo : count
+
+alt count >= limit (3 photos / 1 video)
+  Svc --> Ctrl : MediaLimitError (422)
+  Ctrl --> FE : 422 "Limite de mídia excedido"
+else within limit
+  Svc -> Svc : saveFile(file) -> url
+  Svc -> Repo : createMedia({ animal_id, type, url, ... })
+  Repo -> DB : INSERT animal_media
+  DB --> Repo : OK
+  Svc -> Audit : recordAuditLog({\n  action: 'animal.media.add'\n})
+  Svc --> Ctrl : MediaCreated
+  Ctrl --> FE : 201 { data: media }
+end
+
+@enduml

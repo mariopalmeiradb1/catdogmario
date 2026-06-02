@@ -1,0 +1,74 @@
+@startuml
+!theme plain
+title C4 Component — Animal Management Domain (Backend)
+
+skinparam rectangle {
+  BackgroundColor<<controller>> #438DD5
+  FontColor<<controller>> white
+  BackgroundColor<<service>> #85BBF0
+  FontColor<<service>> black
+  BackgroundColor<<repository>> #08427B
+  FontColor<<repository>> white
+  BackgroundColor<<middleware>> #999999
+  FontColor<<middleware>> white
+  BackgroundColor<<shared>> #F5A623
+  FontColor<<shared>> black
+  BackgroundColor<<external>> #999999
+  FontColor<<external>> white
+}
+
+package "Express Layer" {
+  rectangle "authenticate\nmiddleware" <<middleware>> as auth_mw
+  rectangle "authorize\nmiddleware" <<middleware>> as authz_mw
+  rectangle "validate\nmiddleware" <<middleware>> as val_mw
+  rectangle "multer\nmiddleware" <<middleware>> as multer_mw
+}
+
+package "Animal Management Domain" {
+  rectangle "AnimalManagement\nController" <<controller>> as ctrl {
+  }
+  rectangle "AnimalManagement\nService" <<service>> as svc {
+  }
+  rectangle "AnimalManagement\nRepository" <<repository>> as repo {
+  }
+  rectangle "AnimalManagement\nValidator" <<shared>> as validator {
+  }
+}
+
+package "Shared Services" {
+  rectangle "recordAuditLog\n(audit-log.shared)" <<shared>> as audit
+  rectangle "File Storage\nService" <<shared>> as storage
+}
+
+database "MySQL\n(animals, animal_media,\naudit_logs)" as db
+
+' Flow
+auth_mw --> authz_mw
+authz_mw --> val_mw
+val_mw --> ctrl
+multer_mw --> ctrl : "media upload"
+
+ctrl --> svc : "delegates business logic"
+svc --> repo : "data access"
+svc --> audit : "audit logging"
+svc --> storage : "file persistence"
+svc --> validator : "reusable schema\n(create/update)"
+repo --> db : "Knex queries"
+audit --> db : "INSERT audit_logs"
+
+note right of svc
+  **Responsabilidades do Service:**
+  - Validar permissões de negócio (tenant, status)
+  - Controle de concorrência otimista (updated_at)
+  - Computar diff de campos alterados
+  - Orquestrar audit log com metadata
+  - Validar limites de mídia
+end note
+
+note right of storage
+  **MVP: disco local (uploads/)**
+  Futuro: S3/Object Storage
+  Interface abstraída para troca
+end note
+
+@enduml

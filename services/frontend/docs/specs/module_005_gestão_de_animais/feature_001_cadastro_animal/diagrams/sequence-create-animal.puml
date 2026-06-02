@@ -1,0 +1,53 @@
+@startuml
+!theme plain
+title Sequence — Cadastro de Animal
+
+actor Voluntario as V
+boundary "Frontend\n(AnimalCreatePage)" as FE
+control "API Gateway\n(Express Router)" as API
+entity "AnimalManagement\nController" as CTRL
+entity "AnimalManagement\nService" as SVC
+entity "AnimalManagement\nRepository" as REPO
+entity "FileStorage\nService" as STORAGE
+database "MySQL\n(animals + animal_media)" as DB
+
+== Validação e Dados Textuais ==
+V -> FE : Preenche formulário + seleciona arquivos
+FE -> FE : Validação client-side (Zod)
+FE -> API : POST /api/v1/animal-management\n(multipart/form-data)
+API -> API : authenticate + authorize(['ong_admin','ong_volunteer'])
+API -> CTRL : req com body + files
+
+CTRL -> SVC : createAnimal(input, files, user)
+
+== Verificação de Duplicidade ==
+SVC -> REPO : findDuplicate(ongId, name, species, breed)
+REPO -> DB : SELECT ... WHERE ong_id AND name AND species AND breed
+DB --> REPO : result (0 ou N)
+REPO --> SVC : duplicateExists: boolean
+
+== Persistência do Animal ==
+SVC -> REPO : create(animalData)
+REPO -> DB : INSERT INTO animals
+DB --> REPO : ok
+REPO --> SVC : animal.id
+
+== Upload de Mídia (se houver arquivos) ==
+alt Arquivos presentes
+  SVC -> STORAGE : uploadFiles(files)
+  STORAGE --> SVC : storagePaths[]
+  SVC -> REPO : createMedia(animal_id, mediaRecords[])
+  REPO -> DB : INSERT INTO animal_media (batch)
+  DB --> REPO : ok
+else Upload falha (RNF-04)
+  SVC -> SVC : Log warning, continua sem mídia
+end
+
+== Auditoria ==
+SVC -> SVC : recordAuditLog(action: 'animal.create')
+
+SVC --> CTRL : { animal, duplicateWarning }
+CTRL --> API : 201 Created + body
+API --> FE : Response JSON
+FE --> V : Mensagem de sucesso\n(+ alerta duplicidade se aplicável)
+@enduml

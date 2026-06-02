@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+title C4 Component — Domínio animal-management
+
+package "animal-management domain" {
+  [animal-management.routes] as ROUTES
+  [animal-management.controller] as CTRL
+  [animal-management.service] as SVC
+  [animal-management.repository] as REPO
+  [animal-management.validator] as VALID
+  [animal-management.errors] as ERRORS
+  [animal-management.types] as TYPES
+}
+
+package "shared" {
+  [authenticate.middleware] as AUTH
+  [authorize.middleware] as AUTHZ
+  [validate.middleware] as VALIDATE_MW
+  [file-upload.middleware] as UPLOAD_MW
+  [file-storage.service] as STORAGE_SVC
+  [audit-log.shared] as AUDIT
+  [error-handler.middleware] as ERR_HANDLER
+}
+
+package "infrastructure" {
+  database "MySQL\n(animals, animal_media)" as DB
+  storage "File Storage\n(Local/S3)" as FS
+}
+
+' Request flow
+ROUTES --> AUTH : uses
+ROUTES --> AUTHZ : uses
+ROUTES --> UPLOAD_MW : uses
+ROUTES --> VALIDATE_MW : uses
+ROUTES --> CTRL : delegates
+
+CTRL --> SVC : calls
+SVC --> REPO : persistence
+SVC --> STORAGE_SVC : file operations
+SVC --> AUDIT : audit logging
+
+REPO --> DB : queries
+STORAGE_SVC --> FS : read/write files
+
+VALID ..> TYPES : references
+CTRL ..> TYPES : references
+SVC ..> ERRORS : throws
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+!theme plain
+title HU-02 - Reversao para "Disponivel"
+
+participant "Modulo Visitas\n(futuro)" as Visits
+participant "AnimalStatusService" as Service
+participant "AnimalManagementRepository" as Repo
+database "MySQL" as DB
+participant "AuditLog" as Audit
+
+Visits -> Service : revertToAvailable(animalId, ongId, triggeredBy)
+activate Service
+
+Service -> Repo : findByIdForUpdate(animalId, ongId)
+activate Repo
+Repo -> DB : SELECT ... FOR UPDATE
+DB --> Repo : animal row (locked)
+Repo --> Service : animal
+deactivate Repo
+
+alt status != 'in_adoption_process'
+  Service --> Visits : throw InvalidStatusTransitionError
+else status == 'in_adoption_process'
+  Service -> Repo : updateStatus(animalId, 'available')
+  activate Repo
+  Repo -> DB : UPDATE animals SET status='available'
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Repo : createStatusHistory(...)
+  activate Repo
+  Repo -> DB : INSERT animal_status_history
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Audit : recordAuditLog(action: 'animal.status.revert_to_available')
+  Service --> Visits : { id, status: 'available' }
+end
+
+deactivate Service
+@enduml

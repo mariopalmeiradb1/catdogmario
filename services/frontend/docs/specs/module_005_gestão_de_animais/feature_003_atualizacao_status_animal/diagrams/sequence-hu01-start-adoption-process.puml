@@ -1,0 +1,41 @@
+@startuml
+!theme plain
+title HU-01 - Transicao para "Em Processo de Adocao"
+
+participant "Modulo Visitas\n(futuro)" as Visits
+participant "AnimalStatusService" as Service
+participant "AnimalManagementRepository" as Repo
+database "MySQL" as DB
+participant "AuditLog" as Audit
+
+Visits -> Service : startAdoptionProcess(animalId, ongId, triggeredBy)
+activate Service
+
+Service -> Repo : findByIdForUpdate(animalId, ongId)
+activate Repo
+Repo -> DB : SELECT ... FOR UPDATE
+DB --> Repo : animal row (locked)
+Repo --> Service : animal
+deactivate Repo
+
+alt status != 'available'
+  Service --> Visits : throw InvalidStatusTransitionError
+else status == 'available'
+  Service -> Repo : updateStatus(animalId, 'in_adoption_process')
+  activate Repo
+  Repo -> DB : UPDATE animals SET status='in_adoption_process'
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Repo : createStatusHistory(...)
+  activate Repo
+  Repo -> DB : INSERT animal_status_history
+  Repo --> Service : void
+  deactivate Repo
+
+  Service -> Audit : recordAuditLog(action: 'animal.status.start_adoption_process')
+  Service --> Visits : { id, status: 'in_adoption_process' }
+end
+
+deactivate Service
+@enduml
