@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Typography, Button, Card, Descriptions, Tag, Spin, Space, message } from 'antd';
+import { Typography, Button, Card, Descriptions, Tag, Spin, Space, message, Modal, Input } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { EditOutlined, HistoryOutlined, StopOutlined } from '@ant-design/icons';
+import { EditOutlined, HistoryOutlined, StopOutlined, FileSearchOutlined, SwapOutlined, CheckCircleOutlined, RollbackOutlined } from '@ant-design/icons';
 import { animalManagementService } from '~/services/animal-management.service';
 import { AnimalMediaSection, InactivateConfirmModal, AnimalAuditLogModal } from '~/components/animal-management';
 import type { AnimalDetail, AnimalMedia, AnimalStatus } from '~/types/animal-management.types';
@@ -48,6 +48,9 @@ export function AnimalDetailPage() {
   const [inactivateModalOpen, setInactivateModalOpen] = useState(false);
   const [inactivating, setInactivating] = useState(false);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const [statusTransitioning, setStatusTransitioning] = useState(false);
+  const [confirmAdoptionModalOpen, setConfirmAdoptionModalOpen] = useState(false);
+  const [termNumber, setTermNumber] = useState('');
 
   const fetchAnimal = useCallback(async () => {
     if (!id) return;
@@ -83,6 +86,50 @@ export function AnimalDetailPage() {
     }
   }
 
+  async function handleStartAdoptionProcess() {
+    if (!id) return;
+    setStatusTransitioning(true);
+    try {
+      await animalManagementService.startAdoptionProcess(id);
+      message.success('Animal movido para "Em processo de adoção".');
+      await fetchAnimal();
+    } catch {
+      message.error('Erro ao alterar status do animal.');
+    } finally {
+      setStatusTransitioning(false);
+    }
+  }
+
+  async function handleRevertToAvailable() {
+    if (!id) return;
+    setStatusTransitioning(true);
+    try {
+      await animalManagementService.revertToAvailable(id);
+      message.success('Animal retornou para "Disponível".');
+      await fetchAnimal();
+    } catch {
+      message.error('Erro ao alterar status do animal.');
+    } finally {
+      setStatusTransitioning(false);
+    }
+  }
+
+  async function handleConfirmAdoption() {
+    if (!id || !termNumber.trim()) return;
+    setStatusTransitioning(true);
+    try {
+      await animalManagementService.confirmAdoption(id, termNumber.trim());
+      message.success('Adoção confirmada com sucesso!');
+      setConfirmAdoptionModalOpen(false);
+      setTermNumber('');
+      await fetchAnimal();
+    } catch {
+      message.error('Erro ao confirmar adoção.');
+    } finally {
+      setStatusTransitioning(false);
+    }
+  }
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 64 }}>
@@ -107,6 +154,37 @@ export function AnimalDetailPage() {
           <Tag color={STATUS_COLORS[animal.status]}>{STATUS_LABELS[animal.status]}</Tag>
         </div>
         <Space>
+          <Button icon={<FileSearchOutlined />} onClick={() => navigate(`/ong/adoption-requests?animal_id=${id}`)}>
+            Ver Pedidos de Adoção
+          </Button>
+          {animal.status === 'available' && (
+            <Button
+              icon={<SwapOutlined />}
+              loading={statusTransitioning}
+              onClick={handleStartAdoptionProcess}
+            >
+              Iniciar Processo de Adoção
+            </Button>
+          )}
+          {animal.status === 'in_adoption_process' && (
+            <>
+              <Button
+                icon={<RollbackOutlined />}
+                loading={statusTransitioning}
+                onClick={handleRevertToAvailable}
+              >
+                Voltar para Disponível
+              </Button>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                loading={statusTransitioning}
+                onClick={() => setConfirmAdoptionModalOpen(true)}
+              >
+                Confirmar Adoção
+              </Button>
+            </>
+          )}
           <Button icon={<HistoryOutlined />} onClick={() => setAuditModalOpen(true)}>
             Histórico
           </Button>
@@ -184,6 +262,24 @@ export function AnimalDetailPage() {
         animalName={animal.name}
         onClose={() => setAuditModalOpen(false)}
       />
+
+      <Modal
+        title="Confirmar Adoção"
+        open={confirmAdoptionModalOpen}
+        onOk={handleConfirmAdoption}
+        onCancel={() => { setConfirmAdoptionModalOpen(false); setTermNumber(''); }}
+        okText="Confirmar"
+        cancelText="Cancelar"
+        confirmLoading={statusTransitioning}
+        okButtonProps={{ disabled: !termNumber.trim() }}
+      >
+        <p>Informe o número do termo de responsabilidade para confirmar a adoção de <strong>{animal.name}</strong>.</p>
+        <Input
+          placeholder="Nº do Termo de Responsabilidade"
+          value={termNumber}
+          onChange={(e) => setTermNumber(e.target.value)}
+        />
+      </Modal>
     </div>
   );
 }

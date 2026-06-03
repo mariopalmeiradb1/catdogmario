@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Modal,
   Typography,
@@ -9,15 +9,20 @@ import {
   Tooltip,
   Skeleton,
   Result,
+  message,
 } from 'antd';
 import {
   PhoneOutlined,
   EnvironmentOutlined,
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useAnimalDetail } from '~/hooks/useAnimalDetail';
+import { useAuth } from '~/hooks/useAuth';
+import { adoptionRequestsService } from '~/services/adoption-requests.service';
 import { MediaCarousel } from './MediaCarousel';
 import type { CatalogAnimalDetail } from '~/types/catalog.types';
 import { CSSProperties } from 'react';
+import axios from 'axios';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -91,6 +96,16 @@ function DetailContent({ data }: { data: CatalogAnimalDetail }) {
       <Title level={3} style={{ marginTop: 16, marginBottom: 4 }}>
         {data.name}
       </Title>
+
+      {data.status === 'in_adoption_process' && (
+        <Alert
+          type="warning"
+          message="Este animal está em processo de adoção"
+          description="Outro adotante já está em processo de adoção com este animal. Você ainda pode entrar na fila de espera."
+          showIcon
+          style={{ marginTop: 12, marginBottom: 8 }}
+        />
+      )}
 
       <div style={sectionStyle}>
         <Title level={5} style={sectionTitleStyle}>Dados Básicos</Title>
@@ -180,30 +195,54 @@ function DetailContent({ data }: { data: CatalogAnimalDetail }) {
   );
 }
 
-function ModalFooter({ status }: { status: string }) {
+function ModalFooter({ status, animalId, onRequestSent }: { status: string; animalId: string; onRequestSent?: () => void }) {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
+
   if (status === 'in_adoption_process') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-        <Alert
-          type="warning"
-          message="Este animal já está em processo de adoção."
-          style={{ width: '100%', textAlign: 'center' }}
-        />
-        <Tooltip title="Em breve">
-          <Button type="primary" disabled>
-            Entrar na fila de espera
-          </Button>
-        </Tooltip>
-      </div>
+      <Tooltip title="Em breve">
+        <Button type="primary" disabled>
+          Entrar na fila de espera
+        </Button>
+      </Tooltip>
     );
   }
 
-  return (
-    <Tooltip title="Em breve">
-      <Button type="primary" disabled>
+  if (!isAuthenticated) {
+    return (
+      <Button type="primary" onClick={() => navigate('/login')}>
         Solicitar Adoção
       </Button>
-    </Tooltip>
+    );
+  }
+
+  if (user?.role !== 'adopter') {
+    return null;
+  }
+
+  async function handleAdoptionRequest() {
+    setSubmitting(true);
+    try {
+      await adoptionRequestsService.create(animalId);
+      message.success('Pedido de adoção enviado com sucesso!');
+      onRequestSent?.();
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        message.warning('Você já possui um pedido ativo para este animal.');
+      } else {
+        message.error('Erro ao enviar pedido. Tente novamente.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Button type="primary" loading={submitting} onClick={handleAdoptionRequest}>
+      Solicitar Adoção
+    </Button>
   );
 }
 
@@ -221,7 +260,7 @@ export function AnimalDetailModal({ animalId, onClose }: AnimalDetailModalProps)
     reset();
   }
 
-  const footer = data ? <ModalFooter status={data.status} /> : null;
+  const footer = data ? <ModalFooter status={data.status} animalId={data.id} onRequestSent={handleClose} /> : null;
 
   return (
     <Modal

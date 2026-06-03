@@ -61,4 +61,16 @@ export const animalManagementService = {
   async removeMedia(id: string, mediaId: string): Promise<void> {
     await api.delete(`/${id}/media/${mediaId}`);
   },
+
+  async startAdoptionProcess(id: string): Promise<void> {
+    await api.patch(`/${id}/start-adoption-process`);
+  },
+
+  async revertToAvailable(id: string): Promise<void> {
+    await api.patch(`/${id}/revert-to-available`);
+  },
+
+  async confirmAdoption(id: string, responsibilityTermNumber: string): Promise<void> {
+    await api.patch(`/${id}/confirm-adoption`, { responsibility_term_number: responsibilityTermNumber });
+  },
 };

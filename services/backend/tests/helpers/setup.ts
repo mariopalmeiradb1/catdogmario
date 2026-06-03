@@ -38,6 +38,7 @@ export async function setupTestDb(): Promise<void> {
 
 export async function cleanTestDb(): Promise<void> {
   const db = getTestDb();
+  await db('adoption_requests').del();
   await db('refresh_tokens').del();
   await db('password_resets').del();
   await db('email_confirmations').del();

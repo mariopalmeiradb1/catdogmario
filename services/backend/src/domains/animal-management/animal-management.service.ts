@@ -24,6 +24,7 @@ import {
 import { recordAuditLog } from '~/shared/services/audit-log.shared';
 import { fileStorage } from '~/shared/services/file-storage.service';
 import { db } from '~/config/database';
+import { adoptionRequestsService } from '~/domains/adoption-requests/adoption-requests.service';
 
 const EDITABLE_STATUSES = ['available', 'in_adoption_process'];
 const INACTIVATABLE_STATUSES = ['available', 'adopted'];
@@ -392,6 +393,8 @@ export class AnimalManagementService {
         metadata: { responsibility_term_number: termNumber },
       };
       await animalManagementRepository.createStatusHistory(historyEntry, trx);
+
+      await adoptionRequestsService.autoCloseByAnimal(id, ongId, userId, trx);
     });
 
     await recordAuditLog({
@@ -402,8 +405,6 @@ export class AnimalManagementService {
       entity_id: id,
       metadata: { to_status: 'adopted', responsibility_term_number: termNumber },
     });
-
-    // TODO: integrar com módulo de Pedidos — cancelar pedidos pendentes (RN-06)
 
     return {
       id,

@@ -1,6 +1,6 @@
 import { Layout, Button, theme } from 'antd';
-import { LogoutOutlined } from '@ant-design/icons';
-import { Outlet } from 'react-router-dom';
+import { LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
 
@@ -8,6 +8,7 @@ const { Header, Content } = Layout;
 
 export function AdopterLayout() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const { token } = theme.useToken();
 
   return (
@@ -24,6 +25,13 @@ export function AdopterLayout() {
       >
         <Logo size="sm" />
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Button
+            type="text"
+            icon={<FileTextOutlined />}
+            onClick={() => navigate('/adopter/requests')}
+          >
+            Meus Pedidos
+          </Button>
           <span>{user?.name}</span>
           <Button type="text" icon={<LogoutOutlined />} onClick={logout}>
             Sair

@@ -20,9 +20,15 @@ jest.mock('~/config/database', () => ({
     transaction: jest.fn((callback: (trx: unknown) => Promise<unknown>) => callback({})),
   },
 }));
+jest.mock('~/domains/adoption-requests/adoption-requests.service', () => ({
+  adoptionRequestsService: {
+    autoCloseByAnimal: jest.fn().mockResolvedValue(undefined),
+  },
+}));
 
 const mockedRepository = jest.mocked(animalManagementRepository);
 const { recordAuditLog } = jest.requireMock('~/shared/services/audit-log.shared');
+const { adoptionRequestsService: mockedAdoptionRequestsService } = jest.requireMock('~/domains/adoption-requests/adoption-requests.service');
 
 describe('AnimalManagementService - Status Transitions', () => {
   let service: AnimalManagementService;
@@ -339,6 +345,24 @@ describe('AnimalManagementService - Status Transitions', () => {
 
       await expect(service.confirmAdoption(animalId, userId, ongId, termNumber))
         .rejects.toThrow(AnimalNotFoundError);
+    });
+
+    it('should call autoCloseByAnimal within the transaction', async () => {
+      mockedRepository.findByIdForUpdate.mockResolvedValue({
+        id: animalId,
+        status: 'in_adoption_process',
+      } as never);
+      mockedRepository.updateStatus.mockResolvedValue(undefined);
+      mockedRepository.createStatusHistory.mockResolvedValue(undefined);
+
+      await service.confirmAdoption(animalId, userId, ongId, termNumber);
+
+      expect(mockedAdoptionRequestsService.autoCloseByAnimal).toHaveBeenCalledWith(
+        animalId,
+        ongId,
+        userId,
+        expect.anything(),
+      );
     });
   });
 });

@@ -28,6 +28,9 @@ import { AnimalDetailPage } from '~/pages/ong/AnimalDetailPage';
 import { OngListPage } from '~/pages/admin/OngListPage';
 import { OngEditPage } from '~/pages/admin/OngEditPage';
 import { AdminAuditLogPage } from '~/pages/admin/AdminAuditLogPage';
+import { AdopterRequestsPage } from '~/pages/adopter/AdopterRequestsPage';
+import { AdoptionRequestListPage } from '~/pages/ong/AdoptionRequestListPage';
+import { AdoptionRequestDetailPage } from '~/pages/ong/AdoptionRequestDetailPage';
 
 export function AppRoutes() {
   return (
@@ -58,6 +61,7 @@ export function AppRoutes() {
         <Route element={<RoleRoute allowedRoles={['adopter']} />}>
           <Route element={<AdopterLayout />}>
             <Route path="/adopter/dashboard" element={<Navigate to="/catalog" replace />} />
+            <Route path="/adopter/requests" element={<AdopterRequestsPage />} />
           </Route>
         </Route>
       </Route>
@@ -72,6 +76,8 @@ export function AppRoutes() {
             <Route path="/ong/animals/create" element={<AnimalCreatePage />} />
             <Route path="/ong/animals/:id" element={<AnimalDetailPage />} />
             <Route path="/ong/animals/:id/edit" element={<AnimalEditPage />} />
+            <Route path="/ong/adoption-requests" element={<AdoptionRequestListPage />} />
+            <Route path="/ong/adoption-requests/:id" element={<AdoptionRequestDetailPage />} />
           </Route>
         </Route>
       </Route>

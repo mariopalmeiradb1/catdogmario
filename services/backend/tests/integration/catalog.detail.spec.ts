@@ -49,6 +49,7 @@ describe('Catalog Detail Integration', () => {
       castration: 'yes',
       temperament: JSON.stringify(['dócil', 'brincalhão']),
       estimated_age_category: 'adult',
+      estimated_age_months: 24,
       size: 'large',
       weight_kg: 30,
       height_cm: 60,
@@ -71,6 +72,8 @@ describe('Catalog Detail Integration', () => {
       animal_id: animalId,
       type: 'photo',
       url: 'https://example.com/photo.jpg',
+      original_name: 'photo.jpg',
+      size_bytes: 102400,
       mime_type: 'image/jpeg',
       sort_order: 1,
       ...overrides,
@@ -159,7 +162,7 @@ describe('Catalog Detail Integration', () => {
     it('should return 400 for non-UUID id', async () => {
       const res = await request(app).get('/api/v1/catalog/not-a-uuid');
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(422);
     });
 
     it('should NOT expose sensitive ONG data', async () => {
