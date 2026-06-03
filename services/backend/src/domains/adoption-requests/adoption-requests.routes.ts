@@ -6,6 +6,7 @@ import { adoptionRequestsController } from './adoption-requests.controller';
 import {
   createAdoptionRequestSchema,
   listAdoptionRequestsQuerySchema,
+  listAdopterHistoryQuerySchema,
   adoptionRequestIdParamSchema,
   rejectAdoptionRequestSchema,
 } from './adoption-requests.validator';
@@ -32,8 +33,16 @@ router.get(
   '/mine',
   authenticate,
   authorize(['adopter']),
-  validate(listAdoptionRequestsQuerySchema, 'query'),
+  validate(listAdopterHistoryQuerySchema, 'query'),
   (req, res, next) => adoptionRequestsController.listMine(req, res, next),
+);
+
+router.get(
+  '/mine/:id',
+  authenticate,
+  authorize(['adopter']),
+  validate(adoptionRequestIdParamSchema, 'params'),
+  (req, res, next) => adoptionRequestsController.getMyRequestDetail(req, res, next),
 );
 
 router.get(

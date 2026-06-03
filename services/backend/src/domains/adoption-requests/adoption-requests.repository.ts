@@ -8,6 +8,7 @@ import type {
   AdoptionRequestStatus,
   AdopterRequestListFilters,
   AdopterRequestListItem,
+  AdopterRequestDetail,
 } from './adoption-requests.types';
 
 export class AdoptionRequestsRepository {
@@ -204,6 +205,12 @@ export class AdoptionRequestsRepository {
       if (filters.status && filters.status !== 'all') {
         qb.where('adoption_requests.status', filters.status);
       }
+      if (filters.date_from) {
+        qb.where('adoption_requests.created_at', '>=', filters.date_from);
+      }
+      if (filters.date_to) {
+        qb.where('adoption_requests.created_at', '<=', filters.date_to);
+      }
     };
 
     const countResult = await db('adoption_requests')
@@ -221,6 +228,8 @@ export class AdoptionRequestsRepository {
         'adoption_requests.id',
         'animals.name as animal_name',
         'animals.species as animal_species',
+        'animals.breed as animal_breed',
+        'animals.photo_url as animal_photo_url',
         'ongs.name as ong_name',
         'adoption_requests.status',
         'adoption_requests.rejection_reason',
@@ -234,6 +243,8 @@ export class AdoptionRequestsRepository {
       id: r.id as string,
       animal_name: r.animal_name as string,
       animal_species: r.animal_species as string,
+      animal_photo_url: (r.animal_photo_url as string) || null,
+      animal_breed: (r.animal_breed as string) || null,
       ong_name: r.ong_name as string,
       status: r.status as AdoptionRequestStatus,
       rejection_reason: (r.rejection_reason as string) || null,
@@ -290,6 +301,48 @@ export class AdoptionRequestsRepository {
       });
 
     return ids;
+  }
+
+  async findDetailForAdopter(requestId: string, adopterId: string): Promise<AdopterRequestDetail | null> {
+    const row = await db('adoption_requests')
+      .join('animals', 'adoption_requests.animal_id', 'animals.id')
+      .join('ongs', 'adoption_requests.ong_id', 'ongs.id')
+      .where('adoption_requests.id', requestId)
+      .where('adoption_requests.adopter_id', adopterId)
+      .select(
+        'adoption_requests.id',
+        'animals.name as animal_name',
+        'animals.species as animal_species',
+        'animals.breed as animal_breed',
+        'animals.photo_url as animal_photo_url',
+        'ongs.name as ong_name',
+        'adoption_requests.status',
+        'adoption_requests.rejection_reason',
+        'adoption_requests.cancelled_by',
+        'adoption_requests.cancellation_reason',
+        'adoption_requests.created_at',
+        'adoption_requests.updated_at',
+        'adoption_requests.completed_at',
+      )
+      .first();
+
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      animal_name: row.animal_name,
+      animal_species: row.animal_species,
+      animal_breed: row.animal_breed || null,
+      animal_photo_url: row.animal_photo_url || null,
+      ong_name: row.ong_name,
+      status: row.status,
+      rejection_reason: row.rejection_reason || null,
+      cancelled_by: row.cancelled_by || null,
+      cancellation_reason: row.cancellation_reason || null,
+      created_at: new Date(row.created_at).toISOString(),
+      updated_at: new Date(row.updated_at).toISOString(),
+      completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+    };
   }
 }
 

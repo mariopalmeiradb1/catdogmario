@@ -277,6 +277,8 @@ describe('AdoptionRequestsService', () => {
             id: 'r1',
             animal_name: 'Rex',
             animal_species: 'dog',
+            animal_photo_url: null,
+            animal_breed: 'Labrador',
             ong_name: 'ONG Teste',
             status: 'pending',
             rejection_reason: null,

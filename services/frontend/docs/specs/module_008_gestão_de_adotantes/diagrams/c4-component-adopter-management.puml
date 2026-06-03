@@ -1,0 +1,68 @@
+@startuml
+' C4 Component Diagram - Adopter Management Domain (Backend)
+!theme cerulean
+title C4 Component — Adopter Management (Backend Container)
+
+skinparam componentStyle rectangle
+
+package "API Layer" {
+  [adopter-management.routes.ts] as routes
+  [adopter-management.controller.ts] as controller
+  [adopter-management.validator.ts] as validator
+}
+
+package "Business Layer" {
+  [adopter-management.service.ts] as service
+  [adopter-management.errors.ts] as errors
+  [adopter-management.types.ts] as types
+}
+
+package "Data Layer" {
+  [adopter-management.repository.ts] as repository
+}
+
+package "Shared Infrastructure" {
+  [authenticate.middleware] as authMw
+  [authorize.middleware] as authzMw
+  [validate.middleware] as valMw
+  [audit-log.shared.ts] as auditLog
+  [cep.service.ts] as cepService
+  [cpf.util.ts] as cpfUtil
+  [data-masking.util.ts] as maskUtil
+}
+
+package "External" {
+  [ViaCEP API] as viaCep
+  database "MySQL\nadopter_profiles" as db
+}
+
+package "Dependent Domains" {
+  [adoption-requests.service.ts] as arService
+}
+
+' API flow
+routes --> authMw : uses
+routes --> authzMw : uses
+routes --> valMw : uses
+routes --> controller : delegates
+
+' Controller to Service
+controller --> service : calls
+
+' Service dependencies
+service --> repository : persists/queries
+service --> cpfUtil : validates CPF
+service --> cepService : lookup address
+service --> auditLog : records actions
+service --> maskUtil : masks sensitive data
+service --> errors : throws
+service --> types : uses
+
+' External
+cepService --> viaCep : HTTP GET
+repository --> db : Knex queries
+
+' Cross-domain
+arService ..> repository : checks profile exists
+
+@enduml

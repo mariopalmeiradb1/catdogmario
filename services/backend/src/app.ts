@@ -8,6 +8,7 @@ import { catalogRoutes } from './domains/catalog/catalog.routes';
 import { ongManagementRoutes } from './domains/ong-management/ong-management.routes';
 import { animalManagementRoutes } from './domains/animal-management/animal-management.routes';
 import { adoptionRequestRoutes } from './domains/adoption-requests/adoption-requests.routes';
+import { adopterManagementRoutes } from './domains/adopter-management/adopter-management.routes';
 import { auditLogRoutes } from './domains/audit-logs/audit-log.routes';
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 import { HttpStatus } from './shared/constants/http-status';
@@ -25,6 +26,7 @@ export function createApp() {
   app.use('/api/v1/ong-management', ongManagementRoutes);
   app.use('/api/v1/animal-management', animalManagementRoutes);
   app.use('/api/v1/adoption-requests', adoptionRequestRoutes);
+  app.use('/api/v1/adopter-management', adopterManagementRoutes);
   app.use('/api/v1/audit-logs', auditLogRoutes);
 
   app.use('/api', (_req: Request, res: Response) => {

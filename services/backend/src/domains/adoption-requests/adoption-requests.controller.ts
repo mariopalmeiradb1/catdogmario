@@ -45,8 +45,10 @@ export class AdoptionRequestsController {
 
       const filters: AdopterRequestListFilters = {
         status: req.query.status as AdopterRequestListFilters['status'],
+        date_from: req.query.date_from as string | undefined,
+        date_to: req.query.date_to as string | undefined,
         page: Number(req.query.page) || 1,
-        limit: Number(req.query.limit) || 20,
+        limit: Number(req.query.limit) || 10,
       };
 
       const result = await adoptionRequestsService.listMine(userId, filters);
@@ -131,6 +133,16 @@ export class AdoptionRequestsController {
 
       await adoptionRequestsService.reject(req.params.id, req.body, userId, ongId);
       res.status(HttpStatus.NO_CONTENT).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getMyRequestDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const result = await adoptionRequestsService.getDetailForAdopter(req.params.id, userId);
+      res.status(HttpStatus.OK).json({ data: result });
     } catch (error) {
       next(error);
     }

@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Button, Space, Typography } from 'antd';
-import { LoginOutlined, LogoutOutlined } from '@ant-design/icons';
+import { LoginOutlined, LogoutOutlined, HistoryOutlined, UserOutlined } from '@ant-design/icons';
 import { Logo } from '~/components/ui/Logo';
 import { useAuth } from '~/hooks/useAuth';
 import { CSSProperties } from 'react';
@@ -42,6 +42,16 @@ export function CatalogLayout() {
         <Logo size="sm" />
         {isAuthenticated ? (
           <Space>
+            {user?.role === 'adopter' && (
+              <>
+                <Button type="text" icon={<HistoryOutlined />} onClick={() => navigate('/adopter/history')}>
+                  Meu Histórico
+                </Button>
+                <Button type="text" icon={<UserOutlined />} onClick={() => navigate('/adopter/profile')}>
+                  Perfil
+                </Button>
+              </>
+            )}
             <Text>Olá, {user?.name.split(' ')[0]}</Text>
             <Button icon={<LogoutOutlined />} onClick={handleLogout}>
               Sair

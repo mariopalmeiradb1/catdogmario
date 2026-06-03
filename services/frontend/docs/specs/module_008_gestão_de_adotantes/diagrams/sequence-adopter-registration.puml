@@ -1,0 +1,73 @@
+@startuml
+' Sequence Diagram - Auto-Registration during First Adoption Request
+!theme cerulean
+title Cadastro Automático de Adotante no Primeiro Pedido
+
+actor "Adotante" as adopter
+participant "Frontend\n(React)" as frontend
+participant "AdoptionRequests\nController" as arCtrl
+participant "AdopterManagement\nService" as amService
+participant "AdopterManagement\nRepository" as amRepo
+participant "CEP API\n(ViaCEP)" as cepApi
+participant "AdoptionRequests\nService" as arService
+database "MySQL" as db
+
+== Adotante inicia pedido de adoção (sem perfil) ==
+
+adopter -> frontend : Clica "Quero Adotar"
+frontend -> arCtrl : POST /api/v1/adoption-requests\n{ animal_id }
+arCtrl -> arService : create(input, userId)
+arService -> amRepo : findByUserId(userId)
+amRepo -> db : SELECT * FROM adopter_profiles\nWHERE user_id = ?
+db --> amRepo : null (sem perfil)
+amRepo --> arService : null
+
+arService --> arCtrl : 422 ADOPTER_PROFILE_REQUIRED
+arCtrl --> frontend : { code: "ADOPTER_PROFILE_REQUIRED" }
+
+== Frontend exibe formulário de cadastro ==
+
+frontend --> adopter : Exibe formulário de cadastro
+
+adopter -> frontend : Preenche CEP
+frontend -> cepApi : GET /ws/{cep}/json
+alt CEP encontrado
+  cepApi --> frontend : { logradouro, bairro, cidade, uf }
+  frontend --> adopter : Preenche campos automaticamente
+else CEP não encontrado / timeout
+  cepApi --> frontend : erro ou timeout (5s)
+  frontend --> adopter : Libera campos para\npreenchimento manual
+end
+
+adopter -> frontend : Submete formulário completo
+
+== Criação do perfil ==
+
+frontend -> amService : POST /api/v1/adopter-management\n{ dados completos }
+amService -> amService : Valida CPF (algorítmico)
+amService -> amService : Valida idade >= 18
+amService -> amRepo : findByCpfHash(cpfHash)
+amRepo -> db : SELECT id FROM adopter_profiles\nWHERE cpf_hash = ?
+db --> amRepo : null (CPF disponível)
+amRepo --> amService : null
+
+amService -> amRepo : create(profileData)
+amRepo -> db : INSERT INTO adopter_profiles
+db --> amRepo : OK
+amRepo --> amService : profileCreated
+
+amService --> frontend : 201 { id, status: 'active' }
+
+== Retorno ao fluxo de adoção ==
+
+frontend --> adopter : "Cadastro realizado!\nProsseguindo com o pedido..."
+frontend -> arCtrl : POST /api/v1/adoption-requests\n{ animal_id }
+arCtrl -> arService : create(input, userId)
+arService -> amRepo : findByUserId(userId)
+amRepo --> arService : adopter_profile (encontrado)
+arService -> arService : Continua fluxo de pedido...
+arService --> arCtrl : 201 { id, status: 'pending' }
+arCtrl --> frontend : Pedido criado
+frontend --> adopter : Confirmação do pedido
+
+@enduml

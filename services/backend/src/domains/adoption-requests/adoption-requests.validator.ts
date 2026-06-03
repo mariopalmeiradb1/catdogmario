@@ -17,6 +17,16 @@ export const adoptionRequestIdParamSchema = z.object({
   id: z.string({ required_error: 'ID do pedido é obrigatório.' }).uuid('ID do pedido inválido.'),
 });
 
+export const listAdopterHistoryQuerySchema = z.object({
+  status: z
+    .enum(['pending', 'in_review', 'approved', 'rejected', 'cancelled', 'completed', 'all'])
+    .optional(),
+  date_from: z.string().datetime({ message: 'Data inicial inválida.' }).optional(),
+  date_to: z.string().datetime({ message: 'Data final inválida.' }).optional(),
+  page: z.coerce.number().int().positive().optional().default(1),
+  limit: z.coerce.number().int().positive().max(100).optional().default(10),
+});
+
 export const rejectAdoptionRequestSchema = z.object({
   rejection_reason: z
     .string()

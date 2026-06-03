@@ -29,8 +29,13 @@ import { OngListPage } from '~/pages/admin/OngListPage';
 import { OngEditPage } from '~/pages/admin/OngEditPage';
 import { AdminAuditLogPage } from '~/pages/admin/AdminAuditLogPage';
 import { AdopterRequestsPage } from '~/pages/adopter/AdopterRequestsPage';
+import { AdopterRegistrationPage } from '~/pages/adopter/AdopterRegistrationPage';
+import { AdopterProfilePage } from '~/pages/adopter/AdopterProfilePage';
+import { AdoptionHistoryPage } from '~/pages/adopter/AdoptionHistoryPage';
+import { AdoptionHistoryDetailPage } from '~/pages/adopter/AdoptionHistoryDetailPage';
 import { AdoptionRequestListPage } from '~/pages/ong/AdoptionRequestListPage';
 import { AdoptionRequestDetailPage } from '~/pages/ong/AdoptionRequestDetailPage';
+import { AdopterProfileViewPage } from '~/pages/ong/AdopterProfileViewPage';
 
 export function AppRoutes() {
   return (
@@ -62,6 +67,10 @@ export function AppRoutes() {
           <Route element={<AdopterLayout />}>
             <Route path="/adopter/dashboard" element={<Navigate to="/catalog" replace />} />
             <Route path="/adopter/requests" element={<AdopterRequestsPage />} />
+            <Route path="/adopter/history" element={<AdoptionHistoryPage />} />
+            <Route path="/adopter/history/:id" element={<AdoptionHistoryDetailPage />} />
+            <Route path="/adopter/registration" element={<AdopterRegistrationPage />} />
+            <Route path="/adopter/profile" element={<AdopterProfilePage />} />
           </Route>
         </Route>
       </Route>
@@ -78,6 +87,7 @@ export function AppRoutes() {
             <Route path="/ong/animals/:id/edit" element={<AnimalEditPage />} />
             <Route path="/ong/adoption-requests" element={<AdoptionRequestListPage />} />
             <Route path="/ong/adoption-requests/:id" element={<AdoptionRequestDetailPage />} />
+            <Route path="/ong/adopter-profile/:id" element={<AdopterProfileViewPage />} />
           </Route>
         </Route>
       </Route>

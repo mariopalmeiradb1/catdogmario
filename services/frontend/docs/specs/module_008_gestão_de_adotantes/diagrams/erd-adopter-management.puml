@@ -1,0 +1,83 @@
+@startuml
+' ERD - MODULE-008 Gestão de Adotantes
+!theme cerulean
+title ERD — Adopter Management Domain
+
+entity "users" as users {
+  *id : VARCHAR(36) <<PK>>
+  --
+  name : VARCHAR(100)
+  email : VARCHAR(255) <<unique>>
+  password_hash : VARCHAR(255)
+  role : ENUM
+  #ong_id : VARCHAR(36) <<FK>>
+  email_confirmed_at : TIMESTAMP
+  is_active : BOOLEAN
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "adopter_profiles" as adopter_profiles {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #user_id : VARCHAR(36) <<FK>> <<unique>>
+  full_name : VARCHAR(150)
+  cpf_hash : VARCHAR(255)
+  cpf_masked : VARCHAR(14)
+  rg : VARCHAR(20)
+  birth_date : DATE
+  phone : VARCHAR(15)
+  cep : VARCHAR(9)
+  street : VARCHAR(200)
+  number : VARCHAR(10)
+  complement : VARCHAR(100)
+  neighborhood : VARCHAR(100)
+  city : VARCHAR(100)
+  state : CHAR(2)
+  has_current_animals : BOOLEAN
+  current_animals_description : VARCHAR(500)
+  had_animals_before : BOOLEAN
+  previous_animals_description : VARCHAR(500)
+  status : ENUM('active','inactive')
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "adoption_requests" as adoption_requests {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #animal_id : VARCHAR(36) <<FK>>
+  #adopter_id : VARCHAR(36) <<FK>>
+  #ong_id : VARCHAR(36) <<FK>>
+  status : ENUM
+  rejection_reason : TEXT
+  cancelled_by : ENUM
+  cancellation_reason : VARCHAR(255)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "animals" as animals {
+  *id : VARCHAR(36) <<PK>>
+  --
+  name : VARCHAR(100)
+  species : VARCHAR(50)
+  breed : VARCHAR(50)
+  #ong_id : VARCHAR(36) <<FK>>
+  status : ENUM
+}
+
+entity "ongs" as ongs {
+  *id : VARCHAR(36) <<PK>>
+  --
+  name : VARCHAR(100)
+  cnpj : VARCHAR(18)
+  status : ENUM
+}
+
+users ||--o| adopter_profiles : "has profile"
+adopter_profiles ||--o{ adoption_requests : "submits"
+animals ||--o{ adoption_requests : "receives"
+ongs ||--o{ adoption_requests : "manages"
+ongs ||--o{ animals : "owns"
+@enduml

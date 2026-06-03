@@ -5,6 +5,7 @@ import type {
   AdoptionRequestCreatedResponse,
   AdopterRequestFilters,
   AdopterRequestListResponse,
+  AdopterRequestDetail,
   VolunteerRequestFilters,
   VolunteerRequestListResponse,
   AdoptionRequestDetail,
@@ -32,6 +33,11 @@ export const adoptionRequestsService = {
   async listMine(filters?: AdopterRequestFilters): Promise<AdopterRequestListResponse> {
     const { data } = await api.get<AdopterRequestListResponse>('/mine', { params: filters });
     return data;
+  },
+
+  async findMineById(id: string): Promise<AdopterRequestDetail> {
+    const { data } = await api.get<{ data: AdopterRequestDetail }>(`/mine/${id}`);
+    return data.data;
   },
 
   async cancel(id: string): Promise<void> {

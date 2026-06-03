@@ -8,6 +8,7 @@ import {
   AdoptionRequestDetail,
   AdopterRequestListFilters,
   AdopterRequestListItem,
+  AdopterRequestDetail,
   RejectAdoptionRequestInput,
   CANCELLABLE_STATUSES,
   APPROVABLE_STATUSES,
@@ -194,6 +195,14 @@ export class AdoptionRequestsService {
         metadata: { trigger: 'animal_adopted', animal_id: animalId },
       });
     }
+  }
+
+  async getDetailForAdopter(requestId: string, userId: string): Promise<AdopterRequestDetail> {
+    const detail = await adoptionRequestsRepository.findDetailForAdopter(requestId, userId);
+    if (!detail) {
+      throw new AdoptionRequestNotFoundError();
+    }
+    return detail;
   }
 }
 

@@ -23,6 +23,8 @@ export interface AdoptionRequestListFilters {
 
 export interface AdopterRequestListFilters {
   status?: AdoptionRequestStatus | 'all';
+  date_from?: string;
+  date_to?: string;
   page: number;
   limit: number;
 }
@@ -65,8 +67,26 @@ export interface AdopterRequestListItem {
   id: string;
   animal_name: string;
   animal_species: string;
+  animal_photo_url: string | null;
+  animal_breed: string | null;
   ong_name: string;
   status: AdoptionRequestStatus;
   rejection_reason: string | null;
   created_at: string;
+}
+
+export interface AdopterRequestDetail {
+  id: string;
+  animal_name: string;
+  animal_species: string;
+  animal_breed: string | null;
+  animal_photo_url: string | null;
+  ong_name: string;
+  status: AdoptionRequestStatus;
+  rejection_reason: string | null;
+  cancelled_by: 'adopter' | 'system' | null;
+  cancellation_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
 }
