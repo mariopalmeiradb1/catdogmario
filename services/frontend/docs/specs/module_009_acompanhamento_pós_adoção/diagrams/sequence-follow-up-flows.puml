@@ -1,0 +1,78 @@
+@startuml
+!theme plain
+title Fluxos de Interacao - Acompanhamento Pos-Adocao
+
+actor "Volunteer/Admin" as user
+participant "adoption-requests\nservice" as ars
+participant "follow-up\nservice" as fus
+participant "notification\nservice" as ns
+database "MySQL" as db
+
+== Fluxo 1: Geracao de Lembretes (adoption completed) ==
+
+user -> ars: PATCH /:id/complete
+activate ars
+ars -> db: UPDATE adoption_requests SET status='completed'
+ars -> db: UPDATE animals SET status='adopted'
+ars -> fus: generateReminders(adoptionRequestId, trx)
+activate fus
+fus -> db: INSERT follow_up_reminders (30d)
+fus -> db: INSERT follow_up_reminders (60d)
+fus -> db: INSERT follow_up_reminders (90d)
+fus --> ars: OK
+deactivate fus
+ars -> db: recordAuditLog
+ars --> user: 200 OK
+deactivate ars
+
+== Fluxo 2: Rotina Diaria de Notificacoes ==
+
+participant "Cron/Scheduler" as cron
+
+cron -> fus: POST /follow-up/routine/daily-check
+activate fus
+fus -> db: SELECT reminders WHERE due_date <= today AND status='pending'
+fus -> db: UPDATE overdue reminders SET status='overdue'
+fus -> ns: createBulkNotifications(users, reminders)
+activate ns
+ns -> db: INSERT notifications (batch)
+ns --> fus: OK
+deactivate ns
+fus -> db: recordAuditLog (status changes)
+fus --> cron: 200 OK {processed: N}
+deactivate fus
+
+== Fluxo 3: Registro de Contato ==
+
+user -> fus: POST /follow-up/reminders/:id/contact
+activate fus
+fus -> db: SELECT reminder WHERE id=:id AND status IN ('pending','overdue')
+fus -> db: INSERT follow_up_contacts
+fus -> db: UPDATE reminder SET status='completed'
+fus -> db: recordAuditLog
+
+alt status = 'no_response'
+  fus -> ns: notifyAdmins(ong_id, "Sem resposta")
+  activate ns
+  ns -> db: INSERT notification (admin)
+  ns --> fus: OK
+  deactivate ns
+end
+
+fus --> user: 201 Created
+deactivate fus
+
+== Fluxo 4: Cancelamento por Devolucao ==
+
+user -> ars: PATCH /animals/:id (status != 'adopted')
+activate ars
+ars -> fus: cancelRemindersByAnimal(animalId, ongId, trx)
+activate fus
+fus -> db: UPDATE reminders SET status='cancelled' WHERE animal_id AND status='pending'
+fus -> db: recordAuditLog (each cancelled)
+fus --> ars: OK
+deactivate fus
+ars --> user: 200 OK
+deactivate ars
+
+@enduml

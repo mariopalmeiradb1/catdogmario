@@ -15,7 +15,6 @@ import { VerifyCodePage } from '~/pages/auth/VerifyCodePage';
 import { ResetPasswordPage } from '~/pages/auth/ResetPasswordPage';
 import { ForceChangePasswordPage } from '~/pages/auth/ForceChangePasswordPage';
 import { CatalogPage } from '~/pages/public/CatalogPage';
-import { DashboardPage } from '~/pages/ong/DashboardPage';
 import { OngProfilePage } from '~/pages/ong/OngProfilePage';
 import { VolunteerListPage } from '~/pages/ong/VolunteerListPage';
 import { VolunteerCreatePage } from '~/pages/ong/VolunteerCreatePage';
@@ -36,6 +35,8 @@ import { AdoptionHistoryDetailPage } from '~/pages/adopter/AdoptionHistoryDetail
 import { AdoptionRequestListPage } from '~/pages/ong/AdoptionRequestListPage';
 import { AdoptionRequestDetailPage } from '~/pages/ong/AdoptionRequestDetailPage';
 import { AdopterProfileViewPage } from '~/pages/ong/AdopterProfileViewPage';
+import { FollowUpListPage } from '~/pages/ong/FollowUpListPage';
+import { FollowUpTimelinePage } from '~/pages/ong/FollowUpTimelinePage';
 
 export function AppRoutes() {
   return (
@@ -79,7 +80,6 @@ export function AppRoutes() {
       <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['ong_volunteer', 'ong_admin']} />}>
           <Route element={<OngLayout />}>
-            <Route path="/ong/dashboard" element={<DashboardPage />} />
             <Route path="/ong/profile" element={<OngProfilePage />} />
             <Route path="/ong/animals" element={<AnimalListPage />} />
             <Route path="/ong/animals/create" element={<AnimalCreatePage />} />
@@ -88,6 +88,8 @@ export function AppRoutes() {
             <Route path="/ong/adoption-requests" element={<AdoptionRequestListPage />} />
             <Route path="/ong/adoption-requests/:id" element={<AdoptionRequestDetailPage />} />
             <Route path="/ong/adopter-profile/:id" element={<AdopterProfileViewPage />} />
+            <Route path="/ong/follow-up" element={<FollowUpListPage />} />
+            <Route path="/ong/follow-up/timeline/:adoptionRequestId" element={<FollowUpTimelinePage />} />
           </Route>
         </Route>
       </Route>

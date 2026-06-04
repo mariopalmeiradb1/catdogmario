@@ -10,6 +10,8 @@ import { animalManagementRoutes } from './domains/animal-management/animal-manag
 import { adoptionRequestRoutes } from './domains/adoption-requests/adoption-requests.routes';
 import { adopterManagementRoutes } from './domains/adopter-management/adopter-management.routes';
 import { auditLogRoutes } from './domains/audit-logs/audit-log.routes';
+import { followUpRoutes } from './domains/follow-up/follow-up.routes';
+import { volunteerManagementRoutes } from './domains/volunteer-management/volunteer-management.routes';
 import { errorHandler } from './shared/middlewares/error-handler.middleware';
 import { HttpStatus } from './shared/constants/http-status';
 
@@ -28,6 +30,8 @@ export function createApp() {
   app.use('/api/v1/adoption-requests', adoptionRequestRoutes);
   app.use('/api/v1/adopter-management', adopterManagementRoutes);
   app.use('/api/v1/audit-logs', auditLogRoutes);
+  app.use('/api/v1/follow-up', followUpRoutes);
+  app.use('/api/v1/volunteers', volunteerManagementRoutes);
 
   app.use('/api', (_req: Request, res: Response) => {
     res.status(HttpStatus.NOT_FOUND).json({

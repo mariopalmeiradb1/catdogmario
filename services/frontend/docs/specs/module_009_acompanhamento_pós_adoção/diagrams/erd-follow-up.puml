@@ -1,0 +1,79 @@
+@startuml
+!theme plain
+title Modelo ER - Acompanhamento Pos-Adocao (Module 009)
+
+entity "follow_up_reminders" as fur {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #adoption_request_id : VARCHAR(36) <<FK>>
+  #animal_id : VARCHAR(36) <<FK>>
+  #adopter_id : VARCHAR(36) <<FK>>
+  #assigned_volunteer_id : VARCHAR(36) <<FK>>
+  #ong_id : VARCHAR(36) <<FK>>
+  reminder_number : TINYINT
+  due_date : DATE
+  status : ENUM('pending','completed','cancelled','overdue')
+  cancellation_reason : VARCHAR(255)
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "follow_up_contacts" as fuc {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #reminder_id : VARCHAR(36) <<FK>> <<unique>>
+  #registered_by : VARCHAR(36) <<FK>>
+  #ong_id : VARCHAR(36) <<FK>>
+  contact_date : DATE
+  status : ENUM('positive','neutral','negative','no_response')
+  observation : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "notifications" as notif {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #user_id : VARCHAR(36) <<FK>>
+  #ong_id : VARCHAR(36) <<FK>>
+  title : VARCHAR(255)
+  message : TEXT
+  type : VARCHAR(50)
+  reference_entity : VARCHAR(50)
+  reference_id : VARCHAR(36)
+  is_read : BOOLEAN
+  created_at : TIMESTAMP
+}
+
+entity "adoption_requests" as ar {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #animal_id : VARCHAR(36) <<FK>>
+  #adopter_id : VARCHAR(36) <<FK>>
+  #ong_id : VARCHAR(36) <<FK>>
+  status : ENUM
+  completed_at : TIMESTAMP
+}
+
+entity "animals" as an {
+  *id : VARCHAR(36) <<PK>>
+  --
+  #ong_id : VARCHAR(36) <<FK>>
+  name : VARCHAR
+  status : ENUM
+}
+
+entity "users" as us {
+  *id : VARCHAR(36) <<PK>>
+  --
+  name : VARCHAR
+  role : ENUM
+}
+
+ar ||--o{ fur : "generates"
+fur ||--o| fuc : "completed_by"
+us ||--o{ fur : "assigned_to"
+us ||--o{ fuc : "registered_by"
+us ||--o{ notif : "receives"
+an ||--o{ fur : "tracked_animal"
+@enduml

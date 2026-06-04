@@ -1,7 +1,7 @@
 const roleHomeMap: Record<string, string> = {
   adopter: '/catalog',
-  ong_volunteer: '/ong/dashboard',
-  ong_admin: '/ong/dashboard',
+  ong_volunteer: '/ong/animals',
+  ong_admin: '/ong/animals',
   system_admin: '/admin/ongs',
 };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Typography, Button, Card, Descriptions, Tag, Spin, Alert, message, Popconfirm } from 'antd';
-import { CalendarOutlined } from '@ant-design/icons';
+import { CalendarOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adoptionRequestsService } from '~/services/adoption-requests.service';
 import { RejectRequestModal } from '~/components/adoption-management/RejectRequestModal';
@@ -205,6 +205,18 @@ export function AdoptionRequestDetailPage() {
           description="Este pedido foi cancelado pelo próprio adotante."
           style={{ marginBottom: 16 }}
         />
+      )}
+
+      {detail.status === 'completed' && (
+        <Card style={{ marginBottom: 16 }}>
+          <Button
+            type="primary"
+            icon={<HistoryOutlined />}
+            onClick={() => navigate(`/ong/follow-up/timeline/${detail.id}`)}
+          >
+            Ver Acompanhamento
+          </Button>
+        </Card>
       )}
 
       {showActions && (

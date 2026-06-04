@@ -1,0 +1,66 @@
+@startuml
+!theme plain
+title C4 Component - Backend: Dominios Follow-Up e Notifications
+
+package "Backend API (Express)" {
+
+  package "Domain: follow-up" as followup {
+    [follow-up.routes] as fur
+    [follow-up.controller] as fuc
+    [follow-up.service] as fus
+    [follow-up.repository] as furepo
+    [follow-up.validator] as fuv
+    [follow-up.types] as fut
+    [follow-up.errors] as fue
+  }
+
+  package "Domain: notifications" as notifdom {
+    [notifications.routes] as nr
+    [notifications.controller] as nc
+    [notifications.service] as nserv
+    [notifications.repository] as nrepo
+    [notifications.types] as nt
+  }
+
+  package "Domain: adoption-requests (existing)" as ardom {
+    [adoption-requests.service] as ars
+  }
+
+  package "Domain: animal-management (existing)" as amdom {
+    [animal-management.service] as ams
+  }
+
+  package "Shared" as shared {
+    [audit-log.shared] as audit
+    [authenticate.middleware] as authmw
+    [authorize.middleware] as authzmw
+  }
+}
+
+database "MySQL" as db
+
+' Flow: routes -> controller -> service -> repository -> db
+fur --> fuc
+fuc --> fus
+fus --> furepo
+furepo --> db
+
+nr --> nc
+nc --> nserv
+nserv --> nrepo
+nrepo --> db
+
+' Integration points
+ars ..> fus : "generateReminders()\non adoption completed"
+ams ..> fus : "cancelRemindersByAnimal()\non animal status change"
+fus ..> nserv : "createNotification()\nfor due/overdue reminders"
+fus ..> audit : "recordAuditLog()"
+nserv ..> audit : "recordAuditLog()"
+
+' Middleware
+fur ..> authmw
+fur ..> authzmw
+nr ..> authmw
+nr ..> authzmw
+
+@enduml

@@ -1,5 +1,5 @@
 import { Layout, Menu, Button, theme } from 'antd';
-import { LogoutOutlined, FileTextOutlined, TeamOutlined, BankOutlined, AuditOutlined, HeartOutlined, SolutionOutlined } from '@ant-design/icons';
+import { LogoutOutlined, TeamOutlined, BankOutlined, AuditOutlined, HeartOutlined, SolutionOutlined, CalendarOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
@@ -14,11 +14,6 @@ export function OngLayout() {
 
   const menuItems = [
     {
-      key: '/ong/dashboard',
-      icon: <FileTextOutlined />,
-      label: 'Solicitações',
-    },
-    {
       key: '/ong/animals',
       icon: <HeartOutlined />,
       label: 'Animais',
@@ -27,6 +22,11 @@ export function OngLayout() {
       key: '/ong/adoption-requests',
       icon: <SolutionOutlined />,
       label: 'Pedidos de Adoção',
+    },
+    {
+      key: '/ong/follow-up',
+      icon: <CalendarOutlined />,
+      label: 'Acompanhamento',
     },
     {
       key: '/ong/profile',
