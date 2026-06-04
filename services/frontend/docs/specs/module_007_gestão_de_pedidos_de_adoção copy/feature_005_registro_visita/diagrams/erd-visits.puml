@@ -1,0 +1,68 @@
+@startuml
+' ER Diagram — FEATURE-005: Registro de Visita Realizada
+!theme cerulean
+
+entity "visits" as visits {
+  * id : string(36) <<PK>>
+  --
+  # adoption_request_id : string(36) <<FK>>
+  # animal_id : string(36) <<FK>>
+  # ong_id : string(36) <<FK>>
+  # scheduled_by : string(36) <<FK>>
+  # completed_by : string(36) <<FK>> [nullable]
+  --
+  * visit_date : datetime
+  * status : enum('scheduled','completed','cancelled')
+  completed_at : datetime [nullable]
+  evaluation : enum('positive','neutral','negative') [nullable]
+  observations : text(2000) [nullable]
+  notes : string(500) [nullable]
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "adoption_requests" as ar {
+  * id : string(36) <<PK>>
+  --
+  # animal_id : string(36) <<FK>>
+  # adopter_id : string(36) <<FK>>
+  # ong_id : string(36) <<FK>>
+  --
+  * status : enum
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity "users" as users {
+  * id : string(36) <<PK>>
+  --
+  * name : string
+  * email : string
+  * role : enum
+}
+
+entity "animals" as animals {
+  * id : string(36) <<PK>>
+  --
+  # ong_id : string(36) <<FK>>
+  --
+  * name : string
+  * status : enum
+}
+
+entity "ongs" as ongs {
+  * id : string(36) <<PK>>
+  --
+  * name : string
+}
+
+ar ||--o{ visits : "has"
+users ||--o{ visits : "schedules"
+users |o--o{ visits : "completes"
+animals ||--o{ visits : "receives"
+ongs ||--o{ visits : "owns"
+ongs ||--o{ ar : "manages"
+users ||--o{ ar : "requests"
+animals ||--o{ ar : "target"
+
+@enduml

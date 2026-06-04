@@ -9,6 +9,8 @@ import type {
   VolunteerRequestFilters,
   VolunteerRequestListResponse,
   AdoptionRequestDetail,
+  ScheduleVisitInput,
+  ScheduleVisitResponse,
 } from '~/types/adoption-requests.types';
 
 const api = axios.create({
@@ -64,5 +66,10 @@ export const adoptionRequestsService = {
 
   async reject(id: string, rejectionReason: string): Promise<void> {
     await api.patch(`/${id}/reject`, { rejection_reason: rejectionReason });
+  },
+
+  async scheduleVisit(id: string, input: ScheduleVisitInput): Promise<ScheduleVisitResponse> {
+    const { data } = await api.post<{ data: ScheduleVisitResponse }>(`/${id}/schedule-visit`, input);
+    return data.data;
   },
 };

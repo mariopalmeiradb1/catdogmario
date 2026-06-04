@@ -9,6 +9,9 @@ import {
   listAdopterHistoryQuerySchema,
   adoptionRequestIdParamSchema,
   rejectAdoptionRequestSchema,
+  scheduleVisitSchema,
+  completeVisitSchema,
+  visitIdParamSchema,
 } from './adoption-requests.validator';
 
 const router = Router();
@@ -43,6 +46,33 @@ router.get(
   authorize(['adopter']),
   validate(adoptionRequestIdParamSchema, 'params'),
   (req, res, next) => adoptionRequestsController.getMyRequestDetail(req, res, next),
+);
+
+// Visit routes (must be before /:id to avoid route conflict)
+router.post(
+  '/:id/schedule-visit',
+  authenticate,
+  authorize(['ong_admin', 'ong_volunteer']),
+  validate(adoptionRequestIdParamSchema, 'params'),
+  validate(scheduleVisitSchema),
+  (req, res, next) => adoptionRequestsController.scheduleVisit(req, res, next),
+);
+
+router.patch(
+  '/visits/:visitId/complete',
+  authenticate,
+  authorize(['ong_admin', 'ong_volunteer']),
+  validate(visitIdParamSchema, 'params'),
+  validate(completeVisitSchema),
+  (req, res, next) => adoptionRequestsController.completeVisit(req, res, next),
+);
+
+router.get(
+  '/visits/:visitId',
+  authenticate,
+  authorize(['adopter', 'ong_admin', 'ong_volunteer']),
+  validate(visitIdParamSchema, 'params'),
+  (req, res, next) => adoptionRequestsController.getVisitDetail(req, res, next),
 );
 
 router.get(

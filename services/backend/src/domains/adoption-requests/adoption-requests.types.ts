@@ -6,6 +6,61 @@ export const APPROVABLE_STATUSES: AdoptionRequestStatus[] = ['pending', 'in_revi
 
 export const REVIEWABLE_STATUSES: AdoptionRequestStatus[] = ['pending'];
 
+export const VISIT_ELIGIBLE_STATUSES: AdoptionRequestStatus[] = ['pending', 'in_review'];
+
+export type VisitStatus = 'scheduled' | 'completed' | 'cancelled';
+
+export type VisitEvaluation = 'positive' | 'neutral' | 'negative';
+
+export interface ScheduleVisitInput {
+  visit_date: string;
+  notes?: string;
+}
+
+export interface ScheduleVisitResponse {
+  id: string;
+  adoption_request_id: string;
+  animal_name: string;
+  visit_date: string;
+  status: VisitStatus;
+  created_at: string;
+}
+
+export interface CompleteVisitInput {
+  completed_at: string;
+  evaluation: VisitEvaluation;
+  observations?: string;
+}
+
+export interface VisitDetailVolunteer {
+  id: string;
+  adoption_request_id: string;
+  animal_id: string;
+  ong_id: string;
+  scheduled_by: string;
+  visit_date: string;
+  notes: string | null;
+  status: VisitStatus;
+  completed_at: string | null;
+  completed_by: string | null;
+  evaluation: VisitEvaluation | null;
+  observations: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VisitDetailAdopter {
+  id: string;
+  adoption_request_id: string;
+  animal_id: string;
+  visit_date: string;
+  status: VisitStatus;
+  completed_at: string | null;
+  evaluation: VisitEvaluation | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface RejectAdoptionRequestInput {
   rejection_reason: string;
 }

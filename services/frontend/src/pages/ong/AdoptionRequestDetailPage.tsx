@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Typography, Button, Card, Descriptions, Tag, Spin, Alert, message, Popconfirm } from 'antd';
+import { CalendarOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adoptionRequestsService } from '~/services/adoption-requests.service';
 import { RejectRequestModal } from '~/components/adoption-management/RejectRequestModal';
+import { ScheduleVisitModal } from '~/components/adoption-management/ScheduleVisitModal';
 import type { AdoptionRequestDetail, AdoptionRequestStatus } from '~/types/adoption-requests.types';
 
 const { Title } = Typography;
@@ -37,6 +39,7 @@ export function AdoptionRequestDetailPage() {
   const [detail, setDetail] = useState<AdoptionRequestDetail | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     if (!id) return;
@@ -94,6 +97,22 @@ export function AdoptionRequestDetailPage() {
       await fetchDetail();
     } catch {
       message.error('Erro ao processar ação. Tente novamente.');
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleScheduleVisit(visitDate: string, notes?: string) {
+    if (!id) return;
+    setActionLoading(true);
+    try {
+      await adoptionRequestsService.scheduleVisit(id, { visit_date: visitDate, notes });
+      message.success('Visita agendada com sucesso!');
+      setScheduleModalOpen(false);
+      await fetchDetail();
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: { message?: string } } } };
+      message.error(axiosError.response?.data?.error?.message || 'Erro ao agendar visita.');
     } finally {
       setActionLoading(false);
     }
@@ -215,6 +234,9 @@ export function AdoptionRequestDetailPage() {
             <Button danger loading={actionLoading} onClick={() => setRejectModalOpen(true)}>
               Rejeitar
             </Button>
+            <Button type="primary" icon={<CalendarOutlined />} loading={actionLoading} onClick={() => setScheduleModalOpen(true)}>
+              Agendar Visita
+            </Button>
           </div>
         </Card>
       )}
@@ -223,6 +245,13 @@ export function AdoptionRequestDetailPage() {
         open={rejectModalOpen}
         onClose={() => setRejectModalOpen(false)}
         onConfirm={handleReject}
+        loading={actionLoading}
+      />
+
+      <ScheduleVisitModal
+        open={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        onConfirm={handleScheduleVisit}
         loading={actionLoading}
       />
     </div>

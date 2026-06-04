@@ -9,6 +9,10 @@ import type {
   AdopterRequestListFilters,
   AdopterRequestListItem,
   AdopterRequestDetail,
+  VisitDetailVolunteer,
+  VisitDetailAdopter,
+  VisitStatus,
+  VisitEvaluation,
 } from './adoption-requests.types';
 
 export class AdoptionRequestsRepository {
@@ -279,13 +283,18 @@ export class AdoptionRequestsRepository {
       });
   }
 
-  async cancelAllActiveByAnimalId(animalId: string, trx: Knex.Transaction): Promise<string[]> {
+  async cancelAllActiveByAnimalId(animalId: string, trx: Knex.Transaction, excludeRequestId?: string): Promise<string[]> {
     const activeStatuses: AdoptionRequestStatus[] = ['pending', 'in_review'];
 
-    const rows = await trx('adoption_requests')
+    let query = trx('adoption_requests')
       .where({ animal_id: animalId })
-      .whereIn('status', activeStatuses)
-      .select('id');
+      .whereIn('status', activeStatuses);
+
+    if (excludeRequestId) {
+      query = query.where('id', '!=', excludeRequestId);
+    }
+
+    const rows = await query.select('id');
 
     const ids = rows.map((r: { id: string }) => r.id);
 
@@ -296,7 +305,7 @@ export class AdoptionRequestsRepository {
       .update({
         status: 'cancelled',
         cancelled_by: 'system',
-        cancellation_reason: 'Animal adotado por outro tutor.',
+        cancellation_reason: excludeRequestId ? 'Visita agendada para outro adotante.' : 'Animal adotado por outro tutor.',
         updated_at: new Date(),
       });
 
@@ -342,6 +351,193 @@ export class AdoptionRequestsRepository {
       created_at: new Date(row.created_at).toISOString(),
       updated_at: new Date(row.updated_at).toISOString(),
       completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+    };
+  }
+
+  // Visit methods (TASK-BACKEND-009)
+
+  async createVisit(
+    data: { id: string; adoption_request_id: string; animal_id: string; ong_id: string; scheduled_by: string; visit_date: string; notes?: string; status: string },
+    trx: Knex.Transaction,
+  ): Promise<void> {
+    const now = new Date();
+    await trx('visits').insert({
+      id: data.id,
+      adoption_request_id: data.adoption_request_id,
+      animal_id: data.animal_id,
+      ong_id: data.ong_id,
+      scheduled_by: data.scheduled_by,
+      visit_date: new Date(data.visit_date),
+      notes: data.notes || null,
+      status: data.status,
+      created_at: now,
+      updated_at: now,
+    });
+  }
+
+  async hasActiveVisitForAnimal(animalId: string, trx: Knex.Transaction): Promise<boolean> {
+    const result = await trx('visits')
+      .where({ animal_id: animalId, status: 'scheduled' })
+      .select(trx.raw('1'))
+      .first();
+    return !!result;
+  }
+
+  async findRequestWithAnimalAndAdopter(
+    requestId: string,
+    ongId: string,
+    trx: Knex.Transaction,
+  ): Promise<{
+    id: string;
+    status: AdoptionRequestStatus;
+    animal_id: string;
+    adopter_id: string;
+    animal_name: string;
+    animal_status: string;
+    adopter_name: string;
+    adopter_email: string;
+    ong_name: string;
+    ong_address: string;
+    ong_city: string;
+    ong_state: string;
+  } | null> {
+    const row = await trx('adoption_requests')
+      .join('animals', 'adoption_requests.animal_id', 'animals.id')
+      .join('users', 'adoption_requests.adopter_id', 'users.id')
+      .join('ongs', 'adoption_requests.ong_id', 'ongs.id')
+      .where('adoption_requests.id', requestId)
+      .where('adoption_requests.ong_id', ongId)
+      .select(
+        'adoption_requests.id',
+        'adoption_requests.status',
+        'adoption_requests.animal_id',
+        'adoption_requests.adopter_id',
+        'animals.name as animal_name',
+        'animals.status as animal_status',
+        'users.name as adopter_name',
+        'users.email as adopter_email',
+        'ongs.name as ong_name',
+        'ongs.address as ong_address',
+        'ongs.city as ong_city',
+        'ongs.state as ong_state',
+      )
+      .forUpdate()
+      .first();
+
+    return row || null;
+  }
+
+  async updateStatusWithTrx(
+    id: string,
+    status: AdoptionRequestStatus,
+    trx: Knex.Transaction,
+    extra?: Record<string, unknown>,
+  ): Promise<void> {
+    await trx('adoption_requests')
+      .where({ id })
+      .update({
+        status,
+        updated_at: new Date(),
+        ...(extra || {}),
+      });
+  }
+
+  // Visit completion methods (TASK-BACKEND-010)
+
+  async findVisitForCompletion(
+    visitId: string,
+    ongId: string,
+    trx: Knex.Transaction,
+  ): Promise<{ id: string; status: VisitStatus; visit_date: string; ong_id: string; adoption_request_id: string } | null> {
+    const row = await trx('visits')
+      .where({ id: visitId, ong_id: ongId })
+      .select('id', 'status', 'visit_date', 'ong_id', 'adoption_request_id')
+      .forUpdate()
+      .first();
+    return row || null;
+  }
+
+  async findVisitById(visitId: string): Promise<{ id: string; ong_id: string } | null> {
+    const row = await db('visits')
+      .where({ id: visitId })
+      .select('id', 'ong_id')
+      .first();
+    return row || null;
+  }
+
+  async completeVisit(
+    visitId: string,
+    data: { completed_at: string; completed_by: string; evaluation: string; observations?: string },
+    trx: Knex.Transaction,
+  ): Promise<void> {
+    await trx('visits')
+      .where({ id: visitId })
+      .update({
+        status: 'completed',
+        completed_at: new Date(data.completed_at),
+        completed_by: data.completed_by,
+        evaluation: data.evaluation,
+        observations: data.observations || null,
+        updated_at: new Date(),
+      });
+  }
+
+  async findVisitDetailFull(visitId: string): Promise<VisitDetailVolunteer | null> {
+    const row = await db('visits')
+      .where({ id: visitId })
+      .select('*')
+      .first();
+
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      adoption_request_id: row.adoption_request_id,
+      animal_id: row.animal_id,
+      ong_id: row.ong_id,
+      scheduled_by: row.scheduled_by,
+      visit_date: new Date(row.visit_date).toISOString(),
+      notes: row.notes || null,
+      status: row.status as VisitStatus,
+      completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+      completed_by: row.completed_by || null,
+      evaluation: (row.evaluation as VisitEvaluation) || null,
+      observations: row.observations || null,
+      created_at: new Date(row.created_at).toISOString(),
+      updated_at: new Date(row.updated_at).toISOString(),
+    };
+  }
+
+  async findVisitDetailForAdopter(visitId: string, adopterId: string): Promise<VisitDetailAdopter | null> {
+    const row = await db('visits')
+      .join('adoption_requests', 'visits.adoption_request_id', 'adoption_requests.id')
+      .where('visits.id', visitId)
+      .where('adoption_requests.adopter_id', adopterId)
+      .select(
+        'visits.id',
+        'visits.adoption_request_id',
+        'visits.animal_id',
+        'visits.visit_date',
+        'visits.status',
+        'visits.completed_at',
+        'visits.evaluation',
+        'visits.created_at',
+        'visits.updated_at',
+      )
+      .first();
+
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      adoption_request_id: row.adoption_request_id,
+      animal_id: row.animal_id,
+      visit_date: new Date(row.visit_date).toISOString(),
+      status: row.status as VisitStatus,
+      completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+      evaluation: (row.evaluation as VisitEvaluation) || null,
+      created_at: new Date(row.created_at).toISOString(),
+      updated_at: new Date(row.updated_at).toISOString(),
     };
   }
 }

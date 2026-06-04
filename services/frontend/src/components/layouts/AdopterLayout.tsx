@@ -1,5 +1,5 @@
 import { Layout, Button, theme } from 'antd';
-import { LogoutOutlined, HistoryOutlined } from '@ant-design/icons';
+import { LogoutOutlined, HistoryOutlined, UserOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '~/hooks/useAuth';
 import { Logo } from '~/components/ui/Logo';
@@ -31,6 +31,13 @@ export function AdopterLayout() {
             onClick={() => navigate('/adopter/history')}
           >
             Meu Histórico
+          </Button>
+          <Button
+            type="text"
+            icon={<UserOutlined />}
+            onClick={() => navigate('/adopter/profile')}
+          >
+            Meu Perfil
           </Button>
           <span>{user?.name}</span>
           <Button type="text" icon={<LogoutOutlined />} onClick={logout}>

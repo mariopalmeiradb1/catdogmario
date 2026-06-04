@@ -107,3 +107,72 @@ export function buildPasswordResetEmail(userName: string, code: string): string 
 </body>
 </html>`;
 }
+
+export function buildVisitScheduledEmail(params: {
+  adopterName: string;
+  animalName: string;
+  visitDate: string;
+  ongName: string;
+  ongAddress: string;
+  ongCity: string;
+  ongState: string;
+}): string {
+  const dateFormatted = new Date(params.visitDate).toLocaleString('pt-BR', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'America/Sao_Paulo',
+  });
+
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visita Agendada - CatDog Mário</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background-color: #6B4EFF; border-radius: 12px 12px 0 0;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🐱 CatDog <span style="color: #FF6B35;">Mário</span></h1>
+              <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0; font-size: 14px;">🐾 Visita Agendada! 🎉</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #333; margin: 0 0 16px;">Olá, ${params.adopterName}!</h2>
+              <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 24px;">
+                Sua visita para conhecer o(a) <strong>${params.animalName}</strong> foi agendada.
+              </p>
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 0 0 24px;">
+                <tr>
+                  <td style="padding: 12px 16px; background-color: #f9f9f9; border-radius: 8px;">
+                    <p style="color: #555; font-size: 14px; margin: 0 0 8px;"><strong>📅 Data/Hora:</strong> ${dateFormatted}</p>
+                    <p style="color: #555; font-size: 14px; margin: 0 0 8px;"><strong>📍 Endereço:</strong> ${params.ongAddress}, ${params.ongCity}/${params.ongState}</p>
+                    <p style="color: #555; font-size: 14px; margin: 0;"><strong>🏠 ONG:</strong> ${params.ongName}</p>
+                  </td>
+                </tr>
+              </table>
+              <p style="color: #777; font-size: 14px; line-height: 1.5; margin: 0;">
+                Por favor, compareça no horário agendado.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 40px; background-color: #f9f9f9; border-radius: 0 0 12px 12px; text-align: center;">
+              <p style="color: #999; font-size: 12px; margin: 0;">
+                🐾 CatDog Mário — Conectando animais a novos lares 🐾
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}

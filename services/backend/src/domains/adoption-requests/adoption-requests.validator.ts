@@ -34,3 +34,20 @@ export const rejectAdoptionRequestSchema = z.object({
     .min(10, 'A justificativa deve ter pelo menos 10 caracteres.')
     .max(1000, 'A justificativa deve ter no máximo 1000 caracteres.'),
 });
+
+export const scheduleVisitSchema = z.object({
+  visit_date: z.string().datetime({ message: 'Data da visita inválida. Use formato ISO 8601.' }),
+  notes: z.string().trim().max(500, 'As observações devem ter no máximo 500 caracteres.').optional(),
+});
+
+export const completeVisitSchema = z.object({
+  completed_at: z.string().datetime({ message: 'Data de realização inválida. Use formato ISO 8601.' }),
+  evaluation: z.enum(['positive', 'neutral', 'negative'], {
+    errorMap: () => ({ message: 'A avaliação deve ser: positiva, neutra ou negativa.' }),
+  }),
+  observations: z.string().trim().max(2000, 'As observações devem ter no máximo 2000 caracteres.').optional(),
+});
+
+export const visitIdParamSchema = z.object({
+  visitId: z.string({ required_error: 'ID da visita é obrigatório.' }).uuid('ID da visita inválido.'),
+});

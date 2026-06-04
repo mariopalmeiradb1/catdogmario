@@ -1,0 +1,52 @@
+@startuml
+' Sequence Diagram — PATCH /adoption-requests/visits/:visitId/complete
+!theme cerulean
+
+title Registro de Visita Realizada — Fluxo Principal
+
+actor "Voluntário/Admin" as user
+participant "Router\n(Express)" as router
+participant "authenticate\nmiddleware" as auth
+participant "authorize\nmiddleware" as authz
+participant "validate\nmiddleware" as val
+participant "Controller" as ctrl
+participant "Service" as svc
+participant "Repository" as repo
+database "MySQL" as db
+participant "AuditLog" as audit
+
+user -> router : PATCH /adoption-requests/visits/:visitId/complete
+router -> auth : verificar token JWT
+auth -> authz : verificar role [ong_volunteer, ong_admin]
+authz -> val : validar body (Zod schema)
+val -> ctrl : completeVisit(req, res, next)
+ctrl -> svc : completeVisit(visitId, input, userId, ongId)
+
+group Transaction com Row Lock
+  svc -> repo : findByIdForUpdate(visitId, trx)
+  repo -> db : SELECT * FROM visits\nWHERE id = :visitId\nFOR UPDATE
+  db --> repo : visit row (locked)
+  repo --> svc : visit | null
+
+  alt visit não encontrada
+    svc --> ctrl : throw VisitNotFoundError (404)
+  else visit.ong_id ≠ ongId
+    svc --> ctrl : throw VisitForbiddenError (403)
+  else visit.status ≠ 'scheduled'
+    svc --> ctrl : throw VisitAlreadyCompletedError (409)
+  else validações de data falham
+    svc --> ctrl : throw ValidationError (422)
+  end
+
+  svc -> repo : markCompleted(visitId, data, trx)
+  repo -> db : UPDATE visits SET\nstatus='completed',\ncompleted_at, completed_by,\nevaluation, observations
+  db --> repo : OK
+  repo --> svc : void
+end
+
+svc -> audit : recordAuditLog(visit_completed)
+audit -> db : INSERT audit_logs
+svc --> ctrl : completedVisit data
+ctrl --> user : 200 OK { data: {...} }
+
+@enduml

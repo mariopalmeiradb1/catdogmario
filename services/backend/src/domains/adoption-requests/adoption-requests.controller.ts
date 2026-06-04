@@ -147,6 +147,57 @@ export class AdoptionRequestsController {
       next(error);
     }
   }
+
+  async scheduleVisit(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const ongId = req.user!.ongId;
+
+      if (!ongId) {
+        res.status(HttpStatus.FORBIDDEN).json({
+          error: { code: 'FORBIDDEN', message: 'Você não está vinculado a nenhuma ONG.' },
+        });
+        return;
+      }
+
+      const result = await adoptionRequestsService.scheduleVisit(req.params.id, req.body, userId, ongId);
+      res.status(HttpStatus.CREATED).json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async completeVisit(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const ongId = req.user!.ongId;
+
+      if (!ongId) {
+        res.status(HttpStatus.FORBIDDEN).json({
+          error: { code: 'FORBIDDEN', message: 'Você não está vinculado a nenhuma ONG.' },
+        });
+        return;
+      }
+
+      await adoptionRequestsService.completeVisit(req.params.visitId, req.body, userId, ongId);
+      res.status(HttpStatus.OK).json({ message: 'Visita registrada como realizada com sucesso.' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getVisitDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.user!.userId;
+      const role = req.user!.role;
+      const ongId = req.user!.ongId;
+
+      const result = await adoptionRequestsService.getVisitDetail(req.params.visitId, userId, role, ongId);
+      res.status(HttpStatus.OK).json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const adoptionRequestsController = new AdoptionRequestsController();

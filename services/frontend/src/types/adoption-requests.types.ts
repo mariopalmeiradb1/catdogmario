@@ -94,3 +94,17 @@ export interface AdoptionRequestDetail {
   created_at: string;
   updated_at: string;
 }
+
+export interface ScheduleVisitInput {
+  visit_date: string;
+  notes?: string;
+}
+
+export interface ScheduleVisitResponse {
+  id: string;
+  adoption_request_id: string;
+  animal_name: string;
+  visit_date: string;
+  status: 'scheduled';
+  created_at: string;
+}
